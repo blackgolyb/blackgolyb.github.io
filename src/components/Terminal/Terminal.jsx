@@ -11,7 +11,7 @@ const Prefix = () => {
 const ProcessedCommand = ({ command, result }) => {
     return (
         <>
-            <p>
+            <p className={styles["command-inputted"]}>
                 <Prefix />
                 {command}
             </p>
@@ -27,39 +27,91 @@ const Terminal = ({ apps }) => {
 
     const emulateCommand = (command) => {};
 
-    const isCommandValid = (command) => {
-        if (command.length == 0) {
-            return "";
+    const parseCommand = (command) => {
+        command = command.trim();
+
+        if (command === "") {
+            return null;
         }
 
         command = command.split(" ");
         const programName = command[0];
 
-        if (command.length < 2) {
-            return "";
-        }
+        return {
+            programName: programName,
+            flags: command.slice(1, -1),
+        };
+    };
 
-        let result = "invalid";
+    const isCommandValid = (programName) => {
+        let result = false;
 
         apps.forEach((app) => {
-            if (app.name == programName) {
-                result = "valid";
+            if (app.name === programName) {
+                result = true;
             }
         });
 
         return result;
     };
 
-    const runCommand = (command) => {
-        if (command.length === 0) {
-            return;
+    const getAppByProgram = (programName) => {
+        let result = null;
+
+        apps.forEach((app) => {
+            if (app.name === programName) {
+                result = app;
+            }
+        });
+
+        return result;
+    };
+
+    const runCommand = (rawCommand) => {
+        const command = parseCommand(rawCommand);
+
+        if (command === null) {
+            return <></>;
         }
 
-        return <p>jsh: {command}: command not found...</p>;
+        const app = getAppByProgram(command.programName);
+        if (app === null) {
+            return <p>jsh: {command.programName}: command not found...</p>;
+        }
+
+        return app.run(command.flags);
     };
 
     const focusInput = () => {
         inputRef.current.focus();
+    };
+
+    const formatUserInput = (unformattedInput) => {
+        const command = parseCommand(unformattedInput);
+
+        if (command === null) {
+            return unformattedInput;
+        }
+
+        const leadingSpacesIndex = unformattedInput.search(command.programName);
+
+        const isProgramValid = isCommandValid(command.programName)
+            ? "valid"
+            : "invalid";
+
+        const commandFlags = unformattedInput.slice(
+            command.programName.length + leadingSpacesIndex,
+        );
+
+        return (
+            <>
+                {" ".repeat(leadingSpacesIndex)}
+                <span className={styles[isProgramValid]}>
+                    {command.programName}
+                </span>
+                {commandFlags}
+            </>
+        );
     };
 
     return (
@@ -70,18 +122,15 @@ const Terminal = ({ apps }) => {
             <div className={styles["history"]}>{history}</div>
             <div className={styles["input-section"]}>
                 <Prefix />
-                <div className={styles["command-inputted"]}>{userInput}</div>
+                <div className={styles["command-inputted"]}>
+                    {formatUserInput(userInput)}
+                </div>
                 <input
                     type="text"
                     ref={inputRef}
-                    className={
-                        styles["command-input"] +
-                        " " +
-                        styles[isCommandValid(userInput)]
-                    }
+                    className={styles["command-input"]}
                     value={""}
                     onKeyDown={(e) => {
-                        console.log(userInput);
                         if (e.key === "Backspace") {
                             if (e.ctrlKey) {
                                 const split_input = userInput.split(" ");
@@ -107,7 +156,7 @@ const Terminal = ({ apps }) => {
                             setHistory([
                                 ...history,
                                 ProcessedCommand({
-                                    command: userInput,
+                                    command: formatUserInput(userInput),
                                     result: result,
                                 }),
                             ]);

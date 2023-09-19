@@ -14,6 +14,9 @@ function App() {
                 apps={[
                     {
                         name: "ls",
+                        run: (flags) => {
+                            return <p>ls</p>;
+                        },
                     },
                 ]}
             ></Terminal>

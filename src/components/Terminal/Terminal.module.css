@@ -36,10 +36,10 @@
     padding: 0;
 }
 
-.command-input.invalid {
+span.invalid {
     color: #ed1515;
 }
 
-.command-input.valid {
+span.valid {
     color: #11d116;
 }
