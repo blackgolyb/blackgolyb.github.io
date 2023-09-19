@@ -1,0 +1,45 @@
+.terminal {
+    width: 100%;
+    height: 100%;
+    background-color: #2e3440;
+
+    display: flex;
+    flex-direction: column;
+
+    font-size: 16pt;
+}
+
+.history {
+}
+
+.input-prefix-span {
+    color: #1d99f3;
+    margin-right: 0.2em;
+}
+
+.input-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.command-inputted {
+    white-space: pre-wrap;
+}
+
+.command-input {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 14pt;
+    margin: 0;
+    padding: 0;
+}
+
+.command-input.invalid {
+    color: #ed1515;
+}
+
+.command-input.valid {
+    color: #11d116;
+}
