@@ -1,16 +1,33 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useEffect, useRef } from "react";
 import Contact from "./components/Contact/Contact";
 import "./App.css";
 import Terminal from "./components/Terminal/Terminal";
+import Header from "./components/Header/Header";
 
 function App() {
-    const [count, setCount] = useState(0);
+    const terminalRef = useRef(null);
+
+    const emulateCommand = (command) => {
+        if (terminalRef.current === null) {
+            console.log("terminal not found");
+            return;
+        }
+
+        terminalRef.current.emulateCommand(command);
+    };
 
     return (
         <>
+            <Header />
+            <button
+                onClick={() => {
+                    emulateCommand("ls -a");
+                }}
+            >
+                emulate
+            </button>
             <Terminal
+                ref={terminalRef}
                 apps={[
                     {
                         name: "ls",
@@ -19,8 +36,8 @@ function App() {
                         },
                     },
                 ]}
-            ></Terminal>
-            <Contact></Contact>
+            />
+            <Contact />
         </>
     );
 }

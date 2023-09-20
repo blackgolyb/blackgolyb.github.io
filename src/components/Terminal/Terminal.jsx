@@ -1,8 +1,17 @@
-import React, { useRef, useState } from "react";
+import React, {
+    useRef,
+    useState,
+    forwardRef,
+    useImperativeHandle,
+} from "react";
 
 import styles from "./Terminal.module.css";
 
 const inputPrefix = "~>";
+
+function getRndInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 const Prefix = () => {
     return <span className={styles["input-prefix-span"]}>{inputPrefix}</span>;
@@ -20,12 +29,30 @@ const ProcessedCommand = ({ command, result }) => {
     );
 };
 
-const Terminal = ({ apps }) => {
+const Terminal = forwardRef((props, ref) => {
+    const { apps } = props;
     const [history, setHistory] = useState([]);
     const [userInput, setUserInput] = useState("");
     const inputRef = useRef(null);
 
-    const emulateCommand = (command) => {};
+    const emulateCommand = (command) => {
+        const defaultInterval = 200;
+        let i = 0;
+
+        const doIteration = () => {
+            if (i > command.length) {
+                return;
+            }
+
+            setUserInput(command.slice(0, i));
+            i++;
+
+            const delay = getRndInteger(-50, 100) + defaultInterval;
+            setTimeout(doIteration, delay);
+        };
+
+        doIteration();
+    };
 
     const parseCommand = (command) => {
         command = command.trim();
@@ -114,6 +141,10 @@ const Terminal = ({ apps }) => {
         );
     };
 
+    useImperativeHandle(ref, () => ({
+        emulateCommand,
+    }));
+
     return (
         <div
             className={styles["terminal"]}
@@ -179,6 +210,6 @@ const Terminal = ({ apps }) => {
             </div>
         </div>
     );
-};
+});
 
 export default Terminal;
