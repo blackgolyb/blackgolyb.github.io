@@ -1,6 +1,24 @@
+:root {
+    --header-height: 60px;
+}
+
 #root {
     width: 100%;
     height: 100vh;
+}
+
+.content {
+    padding-top: var(--header-height);
+    width: 100%;
+    height: 100%;
+}
+
+.header-nav {
+    width: 60%;
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+    justify-content: space-between;
 }
 
 /* #root {
