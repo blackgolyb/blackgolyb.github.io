@@ -3,6 +3,7 @@ import React, {
     useState,
     forwardRef,
     useImperativeHandle,
+    useEffect,
 } from "react";
 
 import styles from "./Terminal.module.css";
@@ -33,26 +34,8 @@ const Terminal = forwardRef((props, ref) => {
     const { apps } = props;
     const [history, setHistory] = useState([]);
     const [userInput, setUserInput] = useState("");
+    const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
     const inputRef = useRef(null);
-
-    const emulateCommand = (command) => {
-        const defaultInterval = 200;
-        let i = 0;
-
-        const doIteration = () => {
-            if (i > command.length) {
-                return;
-            }
-
-            setUserInput(command.slice(0, i));
-            i++;
-
-            const delay = getRndInteger(-50, 100) + defaultInterval;
-            setTimeout(doIteration, delay);
-        };
-
-        doIteration();
-    };
 
     const parseCommand = (command) => {
         command = command.trim();
@@ -114,6 +97,7 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const formatUserInput = (unformattedInput) => {
+        console.log(unformattedInput);
         const command = parseCommand(unformattedInput);
 
         if (command === null) {
@@ -141,6 +125,52 @@ const Terminal = forwardRef((props, ref) => {
         );
     };
 
+    const runInputtedCommand = () => {
+        console.log(userInput);
+        const result = runCommand(userInput);
+
+        setHistory([
+            ...history,
+            ProcessedCommand({
+                command: formatUserInput(userInput),
+                result: result,
+            }),
+        ]);
+        setUserInput("");
+    };
+
+    const emulateCommand = (command, run = true) => {
+        const defaultInterval = 150;
+        let i = 0;
+
+        const doIteration = () => {
+            if (i > command.length) {
+                if (run) {
+                    setUserInputNeedsToRun(true);
+                }
+                return;
+            }
+
+            console.log(userInput);
+            setUserInput(command.slice(0, i));
+            console.log(userInput);
+            i++;
+
+            const delay = getRndInteger(-50, 100) + defaultInterval;
+            setTimeout(doIteration, delay);
+        };
+
+        doIteration();
+    };
+
+    useEffect(() => {
+        if (userInputNeedsToRun === true) {
+            runInputtedCommand();
+        }
+
+        setUserInputNeedsToRun(false);
+    }, [userInputNeedsToRun]);
+
     useImperativeHandle(ref, () => ({
         emulateCommand,
     }));
@@ -148,7 +178,7 @@ const Terminal = forwardRef((props, ref) => {
     return (
         <div
             className={styles["terminal"]}
-            onClick={focusInput}
+            // onClick={focusInput}
         >
             <div className={styles["history"]}>{history}</div>
             <div className={styles["input-section"]}>
@@ -182,18 +212,7 @@ const Terminal = forwardRef((props, ref) => {
                                 setUserInput(userInput.slice(0, -1));
                             }
                         } else if (e.key === "Enter") {
-                            const result = runCommand(userInput);
-
-                            setHistory([
-                                ...history,
-                                ProcessedCommand({
-                                    command: formatUserInput(userInput),
-                                    result: result,
-                                }),
-                            ]);
-                            setUserInput("");
-                        } else if (e.key === " ") {
-                            setUserInput(userInput + " ");
+                            runInputtedCommand();
                         } else if (
                             (e.keyCode >= "a".charCodeAt(0) &&
                                 e.keyCode <= "z".charCodeAt(0)) ||
@@ -201,7 +220,7 @@ const Terminal = forwardRef((props, ref) => {
                                 e.keyCode <= "Z".charCodeAt(0)) ||
                             (e.keyCode >= "0".charCodeAt(0) &&
                                 e.keyCode <= "9".charCodeAt(0)) ||
-                            "\"'\\|></+=-_~`!@#$%^&*(){}[]?.,".includes(e.key)
+                            "\"'\\|></+=-_~`!@#$%^&*(){}[]?., ".includes(e.key)
                         ) {
                             setUserInput(userInput + e.key);
                         }
