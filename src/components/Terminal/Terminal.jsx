@@ -126,7 +126,6 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const runInputtedCommand = () => {
-        console.log(userInput);
         const result = runCommand(userInput);
 
         setHistory([
@@ -151,9 +150,7 @@ const Terminal = forwardRef((props, ref) => {
                 return;
             }
 
-            console.log(userInput);
             setUserInput(command.slice(0, i));
-            console.log(userInput);
             i++;
 
             const delay = getRndInteger(-50, 100) + defaultInterval;
