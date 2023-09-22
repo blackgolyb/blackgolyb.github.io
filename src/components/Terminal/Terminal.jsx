@@ -18,24 +18,60 @@ const Prefix = () => {
     return <span className={styles["input-prefix-span"]}>{inputPrefix}</span>;
 };
 
-const ProcessedCommand = ({ command, result }) => {
+const ProcessedCommand = ({ command, result, commandId }) => {
     return (
-        <>
+        <div key={commandId}>
             <p className={styles["command-inputted"]}>
                 <Prefix />
                 {command}
             </p>
             {result}
-        </>
+        </div>
     );
 };
 
 const Terminal = forwardRef((props, ref) => {
-    const { apps } = props;
     const [history, setHistory] = useState([]);
     const [userInput, setUserInput] = useState("");
     const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
     const inputRef = useRef(null);
+
+    const helpCommand = () => {
+        let helps = [];
+
+        for (let index = 0; index < apps.length; index++) {
+            const app = apps[index];
+            helps.push(
+                <li key={index}>
+                    {app.name}
+                    {app.description ? " - " : ""}
+                    {app.description || ""}
+                </li>,
+            );
+        }
+
+        console.log(helps);
+        return <ul>{helps}</ul>;
+    };
+
+    const clearCommand = () => {
+        setHistory([]);
+    };
+
+    const defaultApps = [
+        {
+            name: "help",
+            run: helpCommand,
+            description: "return a list of all available commands",
+        },
+        {
+            name: "clear",
+            run: clearCommand,
+            description: "remove all treminal history",
+        },
+    ];
+
+    const apps = [...props.apps, ...defaultApps];
 
     const parseCommand = (command) => {
         command = command.trim();
@@ -97,7 +133,6 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const formatUserInput = (unformattedInput) => {
-        console.log(unformattedInput);
         const command = parseCommand(unformattedInput);
 
         if (command === null) {
@@ -128,11 +163,18 @@ const Terminal = forwardRef((props, ref) => {
     const runInputtedCommand = () => {
         const result = runCommand(userInput);
 
+        if (result === undefined) {
+            setUserInput("");
+            focusInput();
+            return;
+        }
+
         setHistory([
             ...history,
             ProcessedCommand({
                 command: formatUserInput(userInput),
                 result: result,
+                commandId: history.length,
             }),
         ]);
         setUserInput("");
@@ -195,7 +237,8 @@ const Terminal = forwardRef((props, ref) => {
                     type="text"
                     ref={inputRef}
                     className={styles["command-input"]}
-                    value={""}
+                    value=""
+                    onChange={(e) => {}}
                     onKeyDown={(e) => {
                         if (e.key === "Backspace") {
                             if (e.ctrlKey) {
