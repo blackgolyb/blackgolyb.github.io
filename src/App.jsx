@@ -1,9 +1,15 @@
 import { useEffect, useRef } from "react";
+
 import Contact from "./components/Contact/Contact";
-import "./App.css";
 import Terminal from "./components/Terminal/Terminal";
 import Header from "./components/Header/Header";
 import Button from "./components/Button/Button";
+import Hello from "./components/Hello/Hello";
+import About from "./components/About/About";
+import Projects from "./components/Projects/Projects";
+import Experience from "./components/Experience/Experience";
+
+import "./App.css";
 
 function App() {
     const terminalRef = useRef(null);
@@ -19,21 +25,27 @@ function App() {
 
     const navigateCommands = [
         {
+            name: "hello",
+            run: () => {
+                return <Hello />;
+            },
+        },
+        {
             name: "about",
             run: () => {
-                return <p>about</p>;
+                return <About />;
             },
         },
         {
             name: "experience",
             run: () => {
-                return <p>experience</p>;
+                return <Experience />;
             },
         },
         {
             name: "projects",
             run: () => {
-                return <p>projects</p>;
+                return <Projects />;
             },
         },
         {
