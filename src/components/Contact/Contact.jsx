@@ -110,12 +110,12 @@ const ABCInput = forwardRef((props, ref) => {
             >
                 {inputASCII}
             </span>
-            <props.inputElem
+            <props.inputelem
                 onMouseUp={updateASCIIInput}
                 {...props}
                 ref={inputRef}
                 className={
-                    styles["input-elem"] + " " + props.classNameInputElem || ""
+                    styles["input-elem"] + " " + props.classnameinputelem || ""
                 }
             />
         </div>
@@ -135,7 +135,7 @@ const ASCIIInput = forwardRef((props, ref) => {
     return (
         <ABCInput
             ref={ref}
-            inputElem={Input}
+            inputelem={Input}
             {...props}
         />
     );
@@ -154,7 +154,7 @@ const ASCIITextArea = forwardRef((props, ref) => {
     return (
         <ABCInput
             ref={ref}
-            inputElem={TextArea}
+            inputelem={TextArea}
             {...props}
         />
     );
@@ -173,11 +173,11 @@ const ASCIIButton = forwardRef((props, ref) => {
     return (
         <ABCInput
             ref={ref}
-            inputElem={Button}
+            inputelem={Button}
             {...props}
             className={props.className + " " + styles["button"]}
-            classNameInputElem={
-                props.classNameInputElem + " " + styles["button-input"]
+            classnameinputelem={
+                props.classnameinputelem + " " + styles["button-input"]
             }
         />
     );
@@ -253,7 +253,7 @@ const Contact = () => {
                     name="name"
                     ref={nameRef}
                     className={styles["form-item"]}
-                    classNameInputElem={styles["form-item-elem"]}
+                    classnameinputelem={styles["form-item-elem"]}
                 />
                 <ASCIIInput
                     type="text"
@@ -261,7 +261,7 @@ const Contact = () => {
                     name="email"
                     ref={emailRef}
                     className={styles["form-item"]}
-                    classNameInputElem={styles["form-item-elem"]}
+                    classnameinputelem={styles["form-item-elem"]}
                 />
                 <ASCIITextArea
                     name="message"
@@ -269,11 +269,11 @@ const Contact = () => {
                     placeholder="Your message"
                     rows={5}
                     className={styles["form-item"]}
-                    classNameInputElem={styles["form-item-elem"]}
+                    classnameinputelem={styles["form-item-elem"]}
                 />
                 <ASCIIButton
                     className={styles["form-item"]}
-                    classNameInputElem={styles["form-item-elem"]}
+                    classnameinputelem={styles["form-item-elem"]}
                 >
                     Submit
                 </ASCIIButton>

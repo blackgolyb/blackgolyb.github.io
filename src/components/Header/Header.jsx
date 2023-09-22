@@ -11,7 +11,7 @@ const Header = ({ children }) => {
 
         setTimeout(() => {
             setIsLoader(false);
-        }, 10000);
+        }, 1000);
     }, []);
 
     return (

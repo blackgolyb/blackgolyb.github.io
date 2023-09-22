@@ -22,6 +22,9 @@ const MatrixCanvas = (props) => {
     function draw() {
         //Black BG for the canvas
         //translucent BG to show trail
+        if (!canvasRef) {
+            return;
+        }
         const c = canvasRef.current;
         const ctx = c.getContext("2d");
         const { R, G, B } = props.bgColor || { R: 0, G: 0, B: 0 };
