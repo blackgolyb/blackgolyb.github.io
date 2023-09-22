@@ -1,5 +1,5 @@
 :root {
-    --header-height: 60px;
+    --header-height: 70px;
     font-family: monospace;
 }
 
@@ -7,6 +7,7 @@
     font-family: Roboto, monospace, monospace;
     /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, monospace; */
     line-height: 1.2;
+    font-size: 16pt;
     /* font-weight: 400; */
     margin: 0;
     padding: 0;
@@ -20,6 +21,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
+}
+
+button:hover,
+button:focus {
+    cursor: pointer;
 }
 
 /* :root {

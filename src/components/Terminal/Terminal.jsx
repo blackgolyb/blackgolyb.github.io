@@ -136,6 +136,7 @@ const Terminal = forwardRef((props, ref) => {
             }),
         ]);
         setUserInput("");
+        focusInput();
     };
 
     const emulateCommand = (command, run = true) => {
@@ -175,9 +176,16 @@ const Terminal = forwardRef((props, ref) => {
     return (
         <div
             className={styles["terminal"]}
-            // onClick={focusInput}
+            onClick={focusInput}
         >
-            <div className={styles["history"]}>{history}</div>
+            <div
+                className={styles["history"]}
+                onClick={(e) => {
+                    e.stopPropagation();
+                }}
+            >
+                {history}
+            </div>
             <div className={styles["input-section"]}>
                 <Prefix />
                 <div className={styles["command-inputted"]}>

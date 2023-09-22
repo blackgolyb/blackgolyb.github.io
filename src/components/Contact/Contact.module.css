@@ -43,7 +43,8 @@ Button
 
 .button:hover,
 .button:focus {
-    background-color: #3c3c3c;
+    background-color: #1e1e1e;
+    cursor: pointer;
 }
 
 /*

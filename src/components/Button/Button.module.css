@@ -1,2 +1,11 @@
 .button {
+    background: none;
+    border: none;
+}
+
+.button:hover .button::after {
+    width: 100%;
+    height: 1px;
+    cursor: pointer;
+    background-color: #fff;
 }
