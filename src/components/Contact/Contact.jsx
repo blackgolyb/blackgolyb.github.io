@@ -65,8 +65,9 @@ const ABCInput = forwardRef((props, ref) => {
         setInputASCII(borderHorizontalStr + bodyStr + borderHorizontalStr);
     };
 
-    const focusInput = () => {
+    const focusInput = (e) => {
         inputRef.current.focus();
+        e.stopPropagation();
     };
 
     useLayoutEffect(() => {
@@ -96,7 +97,9 @@ const ABCInput = forwardRef((props, ref) => {
 
     return (
         <div
-            onClick={focusInput}
+            onClick={(e) => {
+                focusInput(e);
+            }}
             className={styles["input"] + " " + props.className || ""}
         >
             <span
