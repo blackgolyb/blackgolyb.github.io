@@ -5,6 +5,7 @@ import React, {
     useImperativeHandle,
     useEffect,
 } from "react";
+import classNames from 'classnames';
 
 import styles from "./Terminal.module.css";
 
@@ -215,9 +216,11 @@ const Terminal = forwardRef((props, ref) => {
         emulateCommand,
     }));
 
+    const terminalClass = classNames(styles["terminal"], props.className);
+
     return (
         <div
-            className={styles["terminal"]}
+            className={terminalClass}
             onClick={focusInput}
         >
             <div

@@ -9,7 +9,7 @@ import About from "./components/About/About";
 import Projects from "./components/Projects/Projects";
 import Experience from "./components/Experience/Experience";
 
-import "./App.css";
+import styles from "./App.module.css";
 
 function App() {
     const terminalRef = useRef(null);
@@ -59,7 +59,7 @@ function App() {
     return (
         <>
             <Header>
-                <nav className="header-nav">
+                <nav className={styles["header-nav"]}>
                     <Button
                         onClick={() => {
                             emulateCommand("about");
@@ -90,8 +90,9 @@ function App() {
                     </Button>
                 </nav>
             </Header>
-            <div className="content">
+            <div className={styles["content"]}>
                 <Terminal
+                    className={styles["terminal"]}
                     ref={terminalRef}
                     apps={[...navigateCommands]}
                 />
