@@ -35,6 +35,7 @@ const Terminal = forwardRef((props, ref) => {
     const [componentsHistory, setComponentsHistory] = useState([]);
     const [history, setHistory] = useState([]);
     const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+    const [currentAutoCompletionIndex, setCurrentAutoCompletionIndex] = useState(-1);
     const [userInput, setUserInput] = useState("");
     const [backupUserInput, setBackupUserInput] = useState("");
     const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
@@ -53,8 +54,7 @@ const Terminal = forwardRef((props, ref) => {
                 </li>
             );
         }
-
-        console.log(helps);
+        
         return <ul>{helps}</ul>;
     };
 
@@ -63,7 +63,6 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const echoCommand = (args) => {
-        console.log(args);
         return <p>{args.join(" ")}</p>;
     };
 
@@ -239,6 +238,28 @@ const Terminal = forwardRef((props, ref) => {
         );
     }, [currentHistoryIndex]);
 
+    const autoCompletion = () => {
+        const apps_names = apps.map((app) => app.name);
+        const filtered_apps = getFilteredListStartWith(
+            apps_names,
+            backupUserInput
+        );
+
+        if (filtered_apps.length === 0) {
+            return;
+        }
+        
+        if (filtered_apps.length === 1) {
+            setText(filtered_apps[0]);
+        }
+        
+        if (currentAutoCompletionIndex !== -1){
+            setUserInput(filtered_apps[currentAutoCompletionIndex]);
+        };
+
+        setCurrentAutoCompletionIndex((currentAutoCompletionIndex + 1) % filtered_apps.length);
+    }
+
     const emulateCommand = (command, run = true) => {
         const defaultInterval = 150;
         let i = 0;
@@ -264,6 +285,7 @@ const Terminal = forwardRef((props, ref) => {
 
     const setText = (text) => {
         setCurrentHistoryIndex(-1);
+        setCurrentAutoCompletionIndex(-1);
         setUserInput(text);
         setBackupUserInput(text);
     };
@@ -321,6 +343,9 @@ const Terminal = forwardRef((props, ref) => {
                                 setText(userInput.slice(0, -1));
                             }
                         } else if (e.key === "v" && e.ctrlKey) {
+                        } else if (e.key === "Tab") {
+                            autoCompletion();
+                            e.preventDefault();
                         } else if (e.key === "Enter") {
                             runInputtedCommand();
                         } else if (e.key === "ArrowUp") {
