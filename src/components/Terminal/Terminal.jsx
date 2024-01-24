@@ -32,7 +32,9 @@ const ProcessedCommand = ({ command, result, commandId }) => {
 };
 
 const Terminal = forwardRef((props, ref) => {
+    const [componentsHistory, setComponentsHistory] = useState([]);
     const [history, setHistory] = useState([]);
+    const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
     const [userInput, setUserInput] = useState("");
     const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
     const inputRef = useRef(null);
@@ -56,7 +58,7 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const clearCommand = () => {
-        setHistory([]);
+        setComponentsHistory([]);
     };
 
     const defaultApps = [
@@ -162,25 +164,55 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const runInputtedCommand = () => {
+        const command = userInput.trim();
+        if (command !== "" && command !== history[history.length - 1]) {
+            setHistory([...history, command]);
+        }
+
         const result = runCommand(userInput);
 
         if (result === undefined) {
-            setUserInput("");
+            setText("");
             focusInput();
             return;
         }
 
-        setHistory([
-            ...history,
+        setComponentsHistory([
+            ...componentsHistory,
             ProcessedCommand({
                 command: formatUserInput(userInput),
                 result: result,
-                commandId: history.length,
+                commandId: componentsHistory.length,
             }),
         ]);
-        setUserInput("");
+        setText("");
         focusInput();
     };
+
+    const showHistoryUp = () => {
+        if (currentHistoryIndex >= history.length - 1)
+            return;
+        
+        setCurrentHistoryIndex(currentHistoryIndex + 1);
+    }
+
+    const showHistoryDown = () => {
+        if (currentHistoryIndex <= -1)
+            return;
+        
+        setCurrentHistoryIndex(currentHistoryIndex - 1);
+    }
+
+    useEffect(() => {
+        console.log("currentHistoryIndex: ", currentHistoryIndex);
+
+        if (currentHistoryIndex === -1) {
+            setText("");
+            return;
+        }
+        
+        setText(history[history.length - 1 - currentHistoryIndex]);
+    }, [currentHistoryIndex]);
 
     const emulateCommand = (command, run = true) => {
         const defaultInterval = 150;
@@ -194,7 +226,7 @@ const Terminal = forwardRef((props, ref) => {
                 return;
             }
 
-            setUserInput(command.slice(0, i));
+            setText(command.slice(0, i));
             i++;
 
             const delay = getRndInteger(-50, 100) + defaultInterval;
@@ -203,6 +235,10 @@ const Terminal = forwardRef((props, ref) => {
 
         doIteration();
     };
+
+    const setText = (text) => {
+        setUserInput(text);
+    }
 
     useEffect(() => {
         if (userInputNeedsToRun === true) {
@@ -214,6 +250,7 @@ const Terminal = forwardRef((props, ref) => {
 
     useImperativeHandle(ref, () => ({
         emulateCommand,
+        setText,
     }));
 
     const terminalClass = classNames(styles["terminal"], props.className);
@@ -223,13 +260,8 @@ const Terminal = forwardRef((props, ref) => {
             className={terminalClass}
             onClick={focusInput}
         >
-            <div
-                className={styles["history"]}
-                onClick={(e) => {
-                    e.stopPropagation();
-                }}
-            >
-                {history}
+            <div className={styles["history"]}>
+                {componentsHistory}
             </div>
             <div className={styles["input-section"]}>
                 <Prefix />
@@ -256,14 +288,18 @@ const Terminal = forwardRef((props, ref) => {
                                     const element = split_input[index];
                                     if (element.length != 0) break;
                                 }
-                                setUserInput(
+                                setText(
                                     split_input.slice(0, index + 1).join(" "),
                                 );
                             } else {
-                                setUserInput(userInput.slice(0, -1));
+                                setText(userInput.slice(0, -1));
                             }
                         } else if (e.key === "Enter") {
-                            runInputtedCommand();
+                            runInputtedCommand();''
+                        } else if (e.key === "ArrowUp") {
+                            showHistoryUp();
+                        } else if (e.key === "ArrowDown") {
+                            showHistoryDown();
                         } else if (
                             (e.keyCode >= "a".charCodeAt(0) &&
                                 e.keyCode <= "z".charCodeAt(0)) ||
@@ -273,7 +309,7 @@ const Terminal = forwardRef((props, ref) => {
                                 e.keyCode <= "9".charCodeAt(0)) ||
                             "\"'\\|></+=-_~`!@#$%^&*(){}[]?., ".includes(e.key)
                         ) {
-                            setUserInput(userInput + e.key);
+                            setText(userInput + e.key);
                         }
                     }}
                 />
