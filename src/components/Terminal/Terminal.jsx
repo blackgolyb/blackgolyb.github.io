@@ -5,7 +5,7 @@ import React, {
     useImperativeHandle,
     useEffect,
 } from "react";
-import classNames from 'classnames';
+import classNames from "classnames";
 
 import styles from "./Terminal.module.css";
 
@@ -36,6 +36,7 @@ const Terminal = forwardRef((props, ref) => {
     const [history, setHistory] = useState([]);
     const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
     const [userInput, setUserInput] = useState("");
+    const [backupUserInput, setBackupUserInput] = useState("");
     const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
     const inputRef = useRef(null);
 
@@ -49,7 +50,7 @@ const Terminal = forwardRef((props, ref) => {
                     {app.name}
                     {app.description ? " - " : ""}
                     {app.description || ""}
-                </li>,
+                </li>
             );
         }
 
@@ -59,6 +60,11 @@ const Terminal = forwardRef((props, ref) => {
 
     const clearCommand = () => {
         setComponentsHistory([]);
+    };
+
+    const echoCommand = (args) => {
+        console.log(args);
+        return <p>{args.join(" ")}</p>;
     };
 
     const defaultApps = [
@@ -72,9 +78,14 @@ const Terminal = forwardRef((props, ref) => {
             run: clearCommand,
             description: "remove all treminal history",
         },
+        {
+            name: "echo",
+            run: echoCommand,
+            description: "display a line of text",
+        },
     ];
 
-    const apps = [...props.apps, ...defaultApps];
+    const apps = [...defaultApps, ...props.apps];
 
     const parseCommand = (command) => {
         command = command.trim();
@@ -88,7 +99,7 @@ const Terminal = forwardRef((props, ref) => {
 
         return {
             programName: programName,
-            flags: command.slice(1, -1),
+            flags: command.slice(1),
         };
     };
 
@@ -142,14 +153,16 @@ const Terminal = forwardRef((props, ref) => {
             return unformattedInput;
         }
 
-        const leadingSpacesIndex = unformattedInput.search(command.programName);
+        const leadingSpacesIndex = unformattedInput.search(
+            command.programName.replace(/\\/g, "\\\\")
+        );
 
         const isProgramValid = isCommandValid(command.programName)
             ? "valid"
             : "invalid";
 
         const commandFlags = unformattedInput.slice(
-            command.programName.length + leadingSpacesIndex,
+            command.programName.length + leadingSpacesIndex
         );
 
         return (
@@ -189,29 +202,41 @@ const Terminal = forwardRef((props, ref) => {
         focusInput();
     };
 
-    const showHistoryUp = () => {
-        if (currentHistoryIndex >= history.length - 1)
-            return;
-        
-        setCurrentHistoryIndex(currentHistoryIndex + 1);
+    function getFilteredListStartWith(list, prefix) {
+        return list.filter((item) => item.startsWith(prefix));
     }
+
+    const showHistoryUp = () => {
+        const filtered_history = getFilteredListStartWith(
+            history,
+            backupUserInput
+        );
+
+        if (currentHistoryIndex >= filtered_history.length - 1) return;
+
+        setCurrentHistoryIndex(currentHistoryIndex + 1);
+    };
 
     const showHistoryDown = () => {
-        if (currentHistoryIndex <= -1)
-            return;
-        
+        if (currentHistoryIndex <= -1) return;
+
         setCurrentHistoryIndex(currentHistoryIndex - 1);
-    }
+    };
 
     useEffect(() => {
-        console.log("currentHistoryIndex: ", currentHistoryIndex);
-
         if (currentHistoryIndex === -1) {
-            setText("");
+            setUserInput(backupUserInput);
             return;
         }
-        
-        setText(history[history.length - 1 - currentHistoryIndex]);
+
+        const filtered_history = getFilteredListStartWith(
+            history,
+            backupUserInput
+        );
+
+        setUserInput(
+            filtered_history[filtered_history.length - 1 - currentHistoryIndex]
+        );
     }, [currentHistoryIndex]);
 
     const emulateCommand = (command, run = true) => {
@@ -233,12 +258,15 @@ const Terminal = forwardRef((props, ref) => {
             setTimeout(doIteration, delay);
         };
 
+        focusInput();
         doIteration();
     };
 
     const setText = (text) => {
+        setCurrentHistoryIndex(-1);
         setUserInput(text);
-    }
+        setBackupUserInput(text);
+    };
 
     useEffect(() => {
         if (userInputNeedsToRun === true) {
@@ -256,13 +284,8 @@ const Terminal = forwardRef((props, ref) => {
     const terminalClass = classNames(styles["terminal"], props.className);
 
     return (
-        <div
-            className={terminalClass}
-            onClick={focusInput}
-        >
-            <div className={styles["history"]}>
-                {componentsHistory}
-            </div>
+        <div className={terminalClass} onClick={focusInput}>
+            <div className={styles["history"]}>{componentsHistory}</div>
             <div className={styles["input-section"]}>
                 <Prefix />
                 <div className={styles["command-inputted"]}>
@@ -274,6 +297,9 @@ const Terminal = forwardRef((props, ref) => {
                     className={styles["command-input"]}
                     value=""
                     onChange={(e) => {}}
+                    onPaste={(e) => {
+                        setText(userInput + e.clipboardData.getData("Text"));
+                    }}
                     onKeyDown={(e) => {
                         if (e.key === "Backspace") {
                             if (e.ctrlKey) {
@@ -289,13 +315,14 @@ const Terminal = forwardRef((props, ref) => {
                                     if (element.length != 0) break;
                                 }
                                 setText(
-                                    split_input.slice(0, index + 1).join(" "),
+                                    split_input.slice(0, index + 1).join(" ")
                                 );
                             } else {
                                 setText(userInput.slice(0, -1));
                             }
+                        } else if (e.key === "v" && e.ctrlKey) {
                         } else if (e.key === "Enter") {
-                            runInputtedCommand();''
+                            runInputtedCommand();
                         } else if (e.key === "ArrowUp") {
                             showHistoryUp();
                         } else if (e.key === "ArrowDown") {
@@ -313,6 +340,7 @@ const Terminal = forwardRef((props, ref) => {
                         }
                     }}
                 />
+                <div className={styles["cursor"]}></div>
             </div>
         </div>
     );
