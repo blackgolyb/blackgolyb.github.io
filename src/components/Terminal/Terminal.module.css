@@ -21,6 +21,11 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    visibility: hidden;
+}
+
+.input-section.visible {
+    visibility: visible;
 }
 
 .command-inputted {

@@ -33,7 +33,7 @@ function App() {
         {
             name: "about",
             run: () => {
-                return <About />;
+                return <About terminalRef={terminalRef} />;
             },
         },
         {
@@ -65,28 +65,28 @@ function App() {
                             emulateCommand("about");
                         }}
                     >
-                        About
+                        <b>About</b>
                     </Button>
                     <Button
                         onClick={() => {
                             emulateCommand("experience");
                         }}
                     >
-                        Experience
+                        <b>Experience</b>
                     </Button>
                     <Button
                         onClick={() => {
                             emulateCommand("projects");
                         }}
                     >
-                        Projects
+                        <b>Projects</b>
                     </Button>
                     <Button
                         onClick={() => {
                             emulateCommand("contact");
                         }}
                     >
-                        Contact
+                        <b>Contact</b>
                     </Button>
                 </nav>
             </Header>

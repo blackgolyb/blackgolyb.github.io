@@ -35,10 +35,12 @@ const Terminal = forwardRef((props, ref) => {
     const [componentsHistory, setComponentsHistory] = useState([]);
     const [history, setHistory] = useState([]);
     const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
-    const [currentAutoCompletionIndex, setCurrentAutoCompletionIndex] = useState(-1);
+    const [currentAutoCompletionIndex, setCurrentAutoCompletionIndex] =
+        useState(-1);
     const [userInput, setUserInput] = useState("");
     const [backupUserInput, setBackupUserInput] = useState("");
     const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
+    const [isProgramEnded, setIsProgramEnded] = useState(true);
     const inputRef = useRef(null);
 
     const helpCommand = () => {
@@ -54,16 +56,39 @@ const Terminal = forwardRef((props, ref) => {
                 </li>
             );
         }
-        
+
+        exit();
         return <ul>{helps}</ul>;
     };
 
     const clearCommand = () => {
         setComponentsHistory([]);
+        exit();
     };
 
     const echoCommand = (args) => {
+        exit();
         return <p>{args.join(" ")}</p>;
+    };
+
+    const exitCommand = () => {
+        let style = document.createElement("style");
+
+        const styleCode =
+            "*{animation:4s linear 1s forwards glitch,1.5s linear 5s forwards destroy}@keyframes glitch{0%,15%{filter:invert(0)}4%{filter:invert(1)}20%{filter:invert(1);filter:brightness(.5)}26%{filter:invert(0);filter:brightness(1);filter:grayscale(0)}40%{filter:grayscale(1)}79%{filter:grayscale(0);filter:brightness(1)}80%{filter:brightness(0)}100%{filter:brightness(1);filter:invert(0)}}@keyframes destroy{0%{opacity:1}50%{filter:grayscale(1)}60%,90%{filter:invert(0)}75%{filter:grayscale(1);filter:invert(1)}100%{filter:grayscale(0);opacity:0;display:none}}";
+
+        if (style.styleSheet) {
+            style.styleSheet.cssText = styleCode;
+        } else {
+            style.appendChild(document.createTextNode(styleCode));
+        }
+        document.getElementsByTagName("head")[0].appendChild(style);
+
+        setTimeout(() => {
+            document.getElementsByTagName("html")[0].textContent = "";
+        }, 10000);
+
+        exit();
     };
 
     const defaultApps = [
@@ -81,6 +106,11 @@ const Terminal = forwardRef((props, ref) => {
             name: "echo",
             run: echoCommand,
             description: "display a line of text",
+        },
+        {
+            name: "exit",
+            run: exitCommand,
+            description: "exit...?",
         },
     ];
 
@@ -130,15 +160,18 @@ const Terminal = forwardRef((props, ref) => {
         const command = parseCommand(rawCommand);
 
         if (command === null) {
-            return <></>;
+            return { result: <></>, statusCode: 1 };
         }
 
         const app = getAppByProgram(command.programName);
         if (app === null) {
-            return <p>jsh: {command.programName}: command not found...</p>;
+            return {
+                result: <p>jsh: {command.programName}: command not found...</p>,
+                statusCode: 1,
+            };
         }
 
-        return app.run(command.flags);
+        return { result: app.run(command.flags), statusCode: 0 };
     };
 
     const focusInput = () => {
@@ -181,13 +214,15 @@ const Terminal = forwardRef((props, ref) => {
             setHistory([...history, command]);
         }
 
-        const result = runCommand(userInput);
+        const { result, statusCode } = runCommand(userInput);
 
         if (result === undefined) {
             setText("");
             focusInput();
             return;
         }
+
+        setIsProgramEnded(statusCode === 1);
 
         setComponentsHistory([
             ...componentsHistory,
@@ -248,17 +283,19 @@ const Terminal = forwardRef((props, ref) => {
         if (filtered_apps.length === 0) {
             return;
         }
-        
+
         if (filtered_apps.length === 1) {
             setText(filtered_apps[0]);
         }
-        
-        if (currentAutoCompletionIndex !== -1){
-            setUserInput(filtered_apps[currentAutoCompletionIndex]);
-        };
 
-        setCurrentAutoCompletionIndex((currentAutoCompletionIndex + 1) % filtered_apps.length);
-    }
+        if (currentAutoCompletionIndex !== -1) {
+            setUserInput(filtered_apps[currentAutoCompletionIndex]);
+        }
+
+        setCurrentAutoCompletionIndex(
+            (currentAutoCompletionIndex + 1) % filtered_apps.length
+        );
+    };
 
     const emulateCommand = (command, run = true) => {
         const defaultInterval = 150;
@@ -290,6 +327,16 @@ const Terminal = forwardRef((props, ref) => {
         setBackupUserInput(text);
     };
 
+    const exit = (statusCode = 0) => {
+        if (statusCode === undefined) {
+            statusCode = 0;
+        }
+
+        setTimeout(() => {
+            setIsProgramEnded(true);
+        }, 100);
+    };
+
     useEffect(() => {
         if (userInputNeedsToRun === true) {
             runInputtedCommand();
@@ -301,14 +348,18 @@ const Terminal = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
         emulateCommand,
         setText,
+        exit,
     }));
 
     const terminalClass = classNames(styles["terminal"], props.className);
+    const inputSectionClass = classNames(styles["input-section"], {
+        [styles["visible"]]: isProgramEnded,
+    });
 
     return (
         <div className={terminalClass} onClick={focusInput}>
             <div className={styles["history"]}>{componentsHistory}</div>
-            <div className={styles["input-section"]}>
+            <div className={inputSectionClass}>
                 <Prefix />
                 <div className={styles["command-inputted"]}>
                     {formatUserInput(userInput)}
