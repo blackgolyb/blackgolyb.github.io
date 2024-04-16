@@ -4,7 +4,7 @@
 
     position: fixed;
     width: 100%;
-    height: var(--header-height);
+    height: 100vh;
 
     z-index: 100;
 
@@ -14,12 +14,20 @@
     transition: 0.3s ease-in;
 }
 
-.header.loader {
-    height: 100vh;
+.header-content {
+    display: none;
+    width: 100%;
+    height: 100%;
 }
 
-.header.loader * {
-    display: none;
+.header.loaded {
+    height: var(--header-height);
+}
+
+.header.loaded .header-content {
+    display: flex;
+    justify-content: center;
+    align-self: center;
 }
 
 .matrix-bg {
@@ -30,9 +38,9 @@
     z-index: -2;
 }
 
-.matrix-bg.loader {
+/* .header.loaded .matrix-bg{
     display: block;
-}
+} */
 
 .matrix-bg-blur {
     position: absolute;

@@ -1,17 +1,19 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
-import Contact from "./components/Contact/Contact";
-import Terminal from "./components/Terminal/Terminal";
-import Header from "./components/Header/Header";
-import Button from "./components/Button/Button";
-import Hello from "./components/Hello/Hello";
-import About from "./components/About/About";
-import Projects from "./components/Projects/Projects";
-import Experience from "./components/Experience/Experience";
+import Contact from "components/Contact/Contact";
+import Terminal from "components/Terminal/Terminal";
+import Header from "components/Header/Header";
+import Button from "components/Button/Button";
+import Hello from "components/Hello/Hello";
+import About from "components/About/About";
+import Projects from "components/Projects/Projects";
+import Preview from "components/Preview/Preview";
+import Experience from "components/Experience/Experience";
 
 import styles from "./App.module.css";
 
 function App() {
+    const startAnimationTime = 9000;
     const terminalRef = useRef(null);
 
     const emulateCommand = (command) => {
@@ -20,45 +22,37 @@ function App() {
             return;
         }
 
-        terminalRef.current.emulateCommand(command);
+        terminalRef.current?.emulateCommand(command);
     };
 
     const navigateCommands = [
         {
             name: "hello",
-            run: () => {
-                return <Hello />;
-            },
+            run: () => <Hello terminalRef={terminalRef} />,
         },
         {
             name: "about",
-            run: () => {
-                return <About terminalRef={terminalRef} />;
-            },
+            run: () => <About terminalRef={terminalRef} />,
         },
         {
             name: "experience",
-            run: () => {
-                return <Experience />;
-            },
+            run: () => <Experience terminalRef={terminalRef} />,
         },
         {
             name: "projects",
-            run: () => {
-                return <Projects />;
-            },
+            run: () => <Projects terminalRef={terminalRef} />,
         },
         {
             name: "contact",
-            run: () => {
-                return <Contact />;
-            },
+            run: () => <Contact terminalRef={terminalRef} />,
         },
     ];
 
     return (
         <>
-            <Header>
+            <Header
+                headerResizeDelay={startAnimationTime}
+            >
                 <nav className={styles["header-nav"]}>
                     <Button
                         onClick={() => {
@@ -97,6 +91,7 @@ function App() {
                     apps={[...navigateCommands]}
                 />
             </div>
+            <Preview animationTime={startAnimationTime}/>
         </>
     );
 }

@@ -1,8 +1,6 @@
-function getRndInteger(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+import { getRndInteger } from "utils/utils";
 
-function makeAutoInput (defaultInterval=150, randomRange=[-50, 100]) {
+export function makeAutoInput (defaultInterval=150, randomRange=[-50, 100]) {
     function autoInput(text, setFunction) {
         let i = 0;
 
@@ -21,5 +19,3 @@ function makeAutoInput (defaultInterval=150, randomRange=[-50, 100]) {
 
     return autoInput;
 }
-
-export default makeAutoInput;

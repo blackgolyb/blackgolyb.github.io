@@ -6,14 +6,12 @@ import React, {
     useEffect,
 } from "react";
 import classNames from "classnames";
+import { getRndInteger } from "utils/utils";
+
 
 import styles from "./Terminal.module.css";
 
 const inputPrefix = "~>";
-
-function getRndInteger(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 const Prefix = () => {
     return <span className={styles["input-prefix-span"]}>{inputPrefix}</span>;

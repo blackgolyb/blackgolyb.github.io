@@ -186,7 +186,7 @@ const ASCIIButton = forwardRef((props, ref) => {
     );
 });
 
-const Contact = () => {
+const Contact = (props) => {
     const nameRef = useRef(null);
     const emailRef = useRef(null);
     const messageRef = useRef(null);
@@ -239,6 +239,7 @@ const Contact = () => {
                 setSectionNameASCII(data);
             },
         );
+        props.terminalRef?.current.exit();
     }, []);
 
     return (

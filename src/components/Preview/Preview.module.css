@@ -1,0 +1,38 @@
+.preview-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.preview-container.loaded {
+    display: none;
+}
+
+@keyframes blink {
+    0%,
+    100% {
+        visibility: visible;
+    }
+    50% {
+        visibility: hidden;
+    }
+}
+
+.cursor {
+    background-color: #fff;
+    animation: blink 0.7s steps(1, end) infinite;
+    height: 4em;
+    width: calc(0.4em*4);
+    border: 1px solid #fff;
+}
+
+.preview {
+    color: #fff;
+    font-size: 4em;
+}
