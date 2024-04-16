@@ -8,6 +8,7 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    --font-size: 4.3vw;
 }
 
 .preview-container.loaded {
@@ -27,12 +28,12 @@
 .cursor {
     background-color: #fff;
     animation: blink 0.7s steps(1, end) infinite;
-    height: 4em;
-    width: calc(0.4em*4);
+    height: var(--font-size);
+    width: calc(0.4 * var(--font-size));
     border: 1px solid #fff;
 }
 
 .preview {
     color: #fff;
-    font-size: 4em;
+    font-size: var(--font-size);
 }
