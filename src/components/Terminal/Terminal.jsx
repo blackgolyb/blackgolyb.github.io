@@ -56,7 +56,7 @@ const Terminal = forwardRef((props, ref) => {
         }
 
         exit();
-        return <ul>{helps}</ul>;
+        return <ul className={styles["help-list"]}>{helps}</ul>;
     };
 
     const clearCommand = () => {
@@ -96,6 +96,11 @@ const Terminal = forwardRef((props, ref) => {
             description: "return a list of all available commands",
         },
         {
+            name: "exit",
+            run: exitCommand,
+            description: "exit...?",
+        },
+        {
             name: "clear",
             run: clearCommand,
             description: "remove all treminal history",
@@ -104,11 +109,6 @@ const Terminal = forwardRef((props, ref) => {
             name: "echo",
             run: echoCommand,
             description: "display a line of text",
-        },
-        {
-            name: "exit",
-            run: exitCommand,
-            description: "exit...?",
         },
     ];
 

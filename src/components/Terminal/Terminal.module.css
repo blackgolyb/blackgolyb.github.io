@@ -76,3 +76,10 @@ span.valid {
 span.text {
     color: #f67400;
 }
+
+
+.help-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
