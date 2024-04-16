@@ -33,6 +33,7 @@ const MatrixCanvas = (props) => {
     let iteration = 0;
     const font_size = props.fontSize || 12;
     const delay = props.delay || 20;
+    const bgColor = props.bgColor || { R: 0, G: 0, B: 0 };
     const newLineCoef = 0.975;
     const preColumnRepeat = 4;
 
@@ -46,7 +47,7 @@ const MatrixCanvas = (props) => {
         const c = canvasRef.current;
         const columns = c.width / font_size;
         const ctx = c.getContext("2d");
-        const { R, G, B } = props.bgColor || { R: 0, G: 0, B: 0 };
+        const { R, G, B } = bgColor;
 
         ctx.fillStyle = `rgba(${R}, ${G}, ${B}, 0.05)`;
         ctx.fillRect(0, 0, c.width, c.height);
@@ -89,7 +90,7 @@ const MatrixCanvas = (props) => {
         c.width = window.innerWidth;
 
         const ctx = c.getContext("2d");
-        const { R, G, B } = props.bgColor || { R: 0, G: 0, B: 0 };
+        const { R, G, B } = bgColor;
 
         ctx.fillStyle = `rgb(${R}, ${G}, ${B})`;
         ctx.fillRect(0, 0, c.width, c.height);
@@ -104,6 +105,8 @@ const MatrixCanvas = (props) => {
             drops[x] = 1;
         }
         for (let x = 0; x < rows; x++) draw(false);
+        ctx.fillStyle = `rgb(${R}, ${G}, ${B})`;
+        ctx.fillRect(0, 0, c.width, c.height);
 
         setInterval(() => draw(), delay);
     }, []);
