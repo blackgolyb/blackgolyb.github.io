@@ -1,190 +1,14 @@
-import React, {
-    useState,
-    useRef,
-    useLayoutEffect,
-    forwardRef,
-    useImperativeHandle,
-    useEffect,
-} from "react";
-import emailjs from "@emailjs/browser";
+import React, { useState, useRef, useEffect } from "react";
 import figlet from "figlet";
 import standard from "figlet/importable-fonts/Standard.js";
 figlet.parseFont("Standard", standard);
 
+import ASCIIButton from "components/ASCII/ASCIIButton/ASCIIButton";
+import ASCIIInput from "components/ASCII/ASCIIInput/ASCIIInput";
+import ASCIITextArea from "components/ASCII/ASCIITextArea/ASCIITextArea";
+import { sendEmail } from "services/email/email";
+
 import styles from "./Contact.module.css";
-
-function getTextSizeInElement(text, testElem, element) {
-    testElem.innerHTML = text;
-    testElem.style.fontWeight = getComputedStyle(
-        element,
-        null,
-    ).getPropertyValue("font-weight");
-    testElem.style.fontSize = getComputedStyle(element, null).getPropertyValue(
-        "font-size",
-    );
-    testElem.style.fontFamily = getComputedStyle(
-        element,
-        null,
-    ).getPropertyValue("font-family");
-
-    const height = testElem.clientHeight;
-    const width = testElem.clientWidth;
-
-    return { width: width, height: height };
-}
-
-const ABCInput = forwardRef((props, ref) => {
-    const [inputASCII, setInputASCII] = useState("");
-    const inputRef = useRef(null);
-    const inputASCIIRef = useRef(null);
-    const testTextRef = useRef(null);
-
-    const updateASCIIInput = () => {
-        if (!inputRef) {
-            return;
-        }
-
-        const w = inputRef.current.offsetWidth;
-        const h = inputRef.current.offsetHeight;
-
-        const fontSize = getTextSizeInElement(
-            "-",
-            testTextRef.current,
-            inputASCIIRef.current,
-        );
-
-        const wNum = Math.ceil(w / fontSize.width);
-        const hNum = Math.round(h / fontSize.height);
-        console.log(w, h, fontSize);
-        console.log(wNum, hNum);
-
-        const borderHorizontalStr = "+" + "-".repeat(wNum) + "+\n";
-
-        const bodyStr = ("|" + " ".repeat(wNum) + "|\n").repeat(hNum);
-
-        setInputASCII(borderHorizontalStr + bodyStr + borderHorizontalStr);
-    };
-
-    const focusInput = (e) => {
-        inputRef.current.focus();
-        e.stopPropagation();
-    };
-
-    useLayoutEffect(() => {
-        updateASCIIInput();
-    }, []);
-
-    const getValue = () => {
-        if (!inputRef) {
-            return undefined;
-        }
-
-        return inputRef.current.value;
-    };
-
-    const setValue = (value) => {
-        if (!inputRef) {
-            return undefined;
-        }
-
-        inputRef.current.value = value;
-    };
-
-    useImperativeHandle(ref, () => ({
-        getValue,
-        setValue,
-    }));
-
-    return (
-        <div
-            onClick={(e) => {
-                focusInput(e);
-            }}
-            className={styles["input"] + " " + props.className || ""}
-        >
-            <span
-                className={styles["test"]}
-                ref={testTextRef}
-            ></span>
-            <span
-                ref={inputASCIIRef}
-                // className={styles["input-ascii"] + "input-ascii"}
-                className={styles["input-ascii"]}
-            >
-                {inputASCII}
-            </span>
-            <props.inputelem
-                onMouseUp={updateASCIIInput}
-                {...props}
-                ref={inputRef}
-                className={
-                    styles["input-elem"] + " " + props.classnameinputelem || ""
-                }
-            />
-        </div>
-    );
-});
-
-const ASCIIInput = forwardRef((props, ref) => {
-    const Input = forwardRef((props, ref) => {
-        return (
-            <input
-                ref={ref}
-                {...props}
-            />
-        );
-    });
-
-    return (
-        <ABCInput
-            ref={ref}
-            inputelem={Input}
-            {...props}
-        />
-    );
-});
-
-const ASCIITextArea = forwardRef((props, ref) => {
-    const TextArea = forwardRef((props, ref) => {
-        return (
-            <textarea
-                ref={ref}
-                {...props}
-            />
-        );
-    });
-
-    return (
-        <ABCInput
-            ref={ref}
-            inputelem={TextArea}
-            {...props}
-        />
-    );
-});
-
-const ASCIIButton = forwardRef((props, ref) => {
-    const Button = forwardRef((props, ref) => {
-        return (
-            <button
-                ref={ref}
-                {...props}
-            />
-        );
-    });
-
-    return (
-        <ABCInput
-            ref={ref}
-            inputelem={Button}
-            {...props}
-            className={props.className + " " + styles["button"]}
-            classnameinputelem={
-                props.classnameinputelem + " " + styles["button-input"]
-            }
-        />
-    );
-});
 
 const Contact = (props) => {
     const nameRef = useRef(null);
@@ -194,32 +18,28 @@ const Contact = (props) => {
     const sectionName = "Contact";
 
     const send_email = () => {
-        const templateParams = {
+        sendEmail({
             name: nameRef.current.getValue(),
             email: emailRef.current.getValue(),
             message: messageRef.current.getValue(),
-        };
+        }).then(
+            (response) => {
+                console.log("SUCCESS!", response.status, response.text);
+            },
+            (err) => {
+                console.log("FAILED...", err);
+            }
+        );
+    };
 
-        emailjs
-            .send(
-                import.meta.env.VITE_EMAILSJS_SERVICE_ID,
-                import.meta.env.VITE_EMAILSJS_TEMPLATE_ID,
-                templateParams,
-                import.meta.env.VITE_EMAILSJS_PUBLIC_KEY,
-            )
-            .then(
-                (response) => {
-                    console.log("SUCCESS!", response.status, response.text);
-                },
-                (err) => {
-                    console.log("FAILED...", err);
-                },
-            );
+    const cancel = () => {
+        props.terminalRef?.current.exit();
     };
 
     const sendForm = (e) => {
         e.preventDefault();
         send_email();
+        cancel();
     };
 
     useEffect(() => {
@@ -237,9 +57,8 @@ const Contact = (props) => {
                     return;
                 }
                 setSectionNameASCII(data);
-            },
+            }
         );
-        props.terminalRef?.current.exit();
     }, []);
 
     return (
@@ -256,32 +75,35 @@ const Contact = (props) => {
                     placeholder="Your name"
                     name="name"
                     ref={nameRef}
-                    className={styles["form-item"]}
-                    classnameinputelem={styles["form-item-elem"]}
+                    className={styles["form-input"]}
                 />
                 <ASCIIInput
                     type="text"
                     placeholder="Your Email"
                     name="email"
                     ref={emailRef}
-                    className={styles["form-item"]}
-                    classnameinputelem={styles["form-item-elem"]}
+                    className={styles["form-input"]}
                 />
                 <ASCIITextArea
                     name="message"
                     ref={messageRef}
                     placeholder="Your message"
-                    rows={5}
-                    className={styles["form-item"]}
-                    classnameinputelem={styles["form-item-elem"]}
+                    className={styles["form-textarea"]}
                 />
-                <ASCIIButton
-                    className={styles["form-item"]}
-                    classnameinputelem={styles["form-item-elem"]}
-                >
-                    Submit
-                </ASCIIButton>
-                {/* <button>Submit</button> */}
+                <section className={styles["button-section"]}>
+                    <ASCIIButton
+                        className={styles["form-button"]}
+                        onClick={(e) => {
+                            cancel();
+                            e.preventDefault();
+                        }}
+                    >
+                        Cancel
+                    </ASCIIButton>
+                    <ASCIIButton className={styles["form-button"]}>
+                        Submit
+                    </ASCIIButton>
+                </section>
             </form>
         </div>
     );
