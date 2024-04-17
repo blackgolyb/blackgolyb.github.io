@@ -1,0 +1,30 @@
+.input-ascii {
+    font-size: inherit;
+    line-height: 1;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: pre-wrap;
+}
+
+.input-elem {
+    font-size: inherit;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+
+    background: none;
+    border: none;
+    resize: none;
+}
+
+.input {
+    position: relative;
+    overflow: hidden;
+}
