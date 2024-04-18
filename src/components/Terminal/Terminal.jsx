@@ -8,7 +8,6 @@ import React, {
 import classNames from "classnames";
 import { getRndInteger } from "utils/utils";
 
-
 import styles from "./Terminal.module.css";
 
 const inputPrefix = "~>";
@@ -39,24 +38,41 @@ const Terminal = forwardRef((props, ref) => {
     const [backupUserInput, setBackupUserInput] = useState("");
     const [userInputNeedsToRun, setUserInputNeedsToRun] = useState(false);
     const [isProgramEnded, setIsProgramEnded] = useState(true);
+    const [isEmulating, setIsEmulating] = useState(false);
     const inputRef = useRef(null);
 
-    const helpCommand = () => {
-        let helps = [];
+    const helpCommand = (args) => {
+        if (args === undefined || args.length === 0) {
+            const helps = [];
 
-        for (let index = 0; index < apps.length; index++) {
-            const app = apps[index];
-            helps.push(
-                <li key={index}>
-                    {app.name}
-                    {app.description ? " - " : ""}
-                    {app.description || ""}
-                </li>
-            );
+            for (let index = 0; index < apps.length; index++) {
+                const app = apps[index];
+                helps.push(
+                    <li key={index}>
+                        {app.name}
+                        {app.description ? " - " : ""}
+                        {app.description || ""}
+                    </li>
+                );
+            }
+            exit();
+            return <ul className={styles["help-list"]}>{helps}</ul>;
+        } else {
+            const app = apps.find((app) => app.name === args[0]);
+            if (app === undefined) {
+                exit();
+                return <p className={styles["help-error"]}>App not found</p>;
+            } else {
+                exit();
+                return (
+                    <p className={styles["help-error"]}>
+                        {app.name}
+                        {app.description ? " - " : ""}
+                        {app.description || ""}
+                    </p>
+                );
+            }
         }
-
-        exit();
-        return <ul className={styles["help-list"]}>{helps}</ul>;
     };
 
     const clearCommand = () => {
@@ -220,7 +236,7 @@ const Terminal = forwardRef((props, ref) => {
             return;
         }
 
-        setIsProgramEnded(statusCode === 1);
+        setIsProgramEnded(statusCode !== 0);
 
         setComponentsHistory([
             ...componentsHistory,
@@ -296,6 +312,12 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const emulateCommand = (command, run = true) => {
+        if (isEmulating) {
+            return -1;
+        }
+
+        setIsEmulating(true);
+
         const defaultInterval = 150;
         let i = 0;
 
@@ -304,6 +326,7 @@ const Terminal = forwardRef((props, ref) => {
                 if (run) {
                     setUserInputNeedsToRun(true);
                 }
+                setIsEmulating(false);
                 return;
             }
 
@@ -316,6 +339,7 @@ const Terminal = forwardRef((props, ref) => {
 
         focusInput();
         doIteration();
+        return 0;
     };
 
     const setText = (text) => {
@@ -330,10 +354,15 @@ const Terminal = forwardRef((props, ref) => {
             statusCode = 0;
         }
 
-        setTimeout(() => {
-            setIsProgramEnded(true);
-        }, 100);
+        setIsProgramEnded(true);
+        
     };
+
+    useEffect(() => {
+        if (isProgramEnded === true) {
+            focusInput();
+        }
+    }, [isProgramEnded]);
 
     useEffect(() => {
         if (userInputNeedsToRun === true) {
