@@ -1,14 +1,14 @@
 import { useRef } from "react";
 
-import Contact from "components/Contact/Contact";
 import Terminal from "components/Terminal/Terminal";
 import Header from "components/Header/Header";
 import Button from "components/Button/Button";
-import Hello from "components/Hello/Hello";
-import About from "components/About/About";
-import Projects from "components/Projects/Projects";
 import Preview from "components/Preview/Preview";
-import Experience from "components/Experience/Experience";
+import Hello from "components/apps/Hello/Hello";
+import About from "components/apps/About/About";
+import Projects from "components/apps/Projects/Projects";
+import Experience from "components/apps/Experience/Experience";
+import Contact from "components/apps/Contact/Contact";
 
 import styles from "./App.module.css";
 
@@ -17,12 +17,7 @@ function App() {
     const terminalRef = useRef(null);
 
     const emulateCommand = (command) => {
-        if (terminalRef.current === null) {
-            console.log("terminal not found");
-            return;
-        }
-
-        terminalRef.current?.emulateCommand(command);
+        terminalRef?.current.emulateCommand(command);
     };
 
     const navigateCommands = [

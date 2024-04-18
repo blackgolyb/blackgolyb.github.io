@@ -38,6 +38,7 @@
 }
 .form-textarea {
     height: 300px;
+    resize: vertical;
 }
 
 .button-section {
