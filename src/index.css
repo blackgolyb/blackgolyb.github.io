@@ -7,8 +7,8 @@
 }
 
 * {
-    /* font-family: Roboto, monospace, monospace; */
-    font-family: 'Public Pixel', sans-serif;
+    font-family: Roboto, monospace, monospace;
+    /* font-family: 'Public Pixel', sans-serif; */
     /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, monospace; */
     line-height: 1.2;
     font-size: 16pt;

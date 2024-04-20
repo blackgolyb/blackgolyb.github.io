@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Str } from "utils/autoInput";
-
 import AutoInputComponent from "components/AutoInputComponent/AutoInputComponent";
 
 import style from "./Hello.module.css";
@@ -66,7 +65,7 @@ Let's start from about section`;
                                         emulateCommand(app.name);
                                     }}
                                 >
-                                    <Str>{app.name}</Str>
+                                    <b><Str>{app.name}</Str></b>
                                 </button>
                                 <Str>{` - ${app.description}`}</Str>
                             </li>

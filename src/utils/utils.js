@@ -6,7 +6,9 @@ export function getRndInteger(min, max) {
  * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
  *
  * @param {String} text The text to be rendered.
- * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+ * @param {String} fontWeight The css font-weight descriptor that text is to be rendered with (e.g. "bold").
+ * @param {String} fontSize The css font-size descriptor that text is to be rendered with (e.g. "14px").
+ * @param {String} fontFamily The css font-family descriptor that text is to be rendered with (e.g. "verdana").
  *
  * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
  */
@@ -17,7 +19,6 @@ export function getTextSize(text, fontWeight, fontSize, fontFamily) {
         (getTextSize.canvas = document.createElement("canvas"));
     const context = canvas.getContext("2d");
     context.font = `${fontWeight} ${fontSize} ${fontFamily}`;
-    console.log(context.font);
     const metrics = context.measureText(text);
     const height = parseFloat(fontSize);
     const width = metrics.width;

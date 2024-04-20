@@ -312,7 +312,7 @@ const Terminal = forwardRef((props, ref) => {
     };
 
     const emulateCommand = (command, run = true) => {
-        if (isEmulating) {
+        if (isEmulating || !isProgramEnded) {
             return -1;
         }
 

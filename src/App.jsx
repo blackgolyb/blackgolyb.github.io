@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 import Terminal from "components/Terminal/Terminal";
 import Header from "components/Header/Header";
@@ -13,6 +13,7 @@ import Contact from "components/apps/Contact/Contact";
 import styles from "./App.module.css";
 
 function App() {
+    // const startAnimationTime = 1000;
     const startAnimationTime = 9000;
     const terminalRef = useRef(null);
 
@@ -43,11 +44,15 @@ function App() {
         },
     ];
 
+    useEffect(() => {
+        setTimeout(() => {
+            emulateCommand("hello");
+        }, startAnimationTime + 1500);
+    }, []);
+
     return (
         <>
-            <Header
-                headerResizeDelay={startAnimationTime}
-            >
+            <Header headerResizeDelay={startAnimationTime}>
                 <nav className={styles["header-nav"]}>
                     <Button
                         onClick={() => {
@@ -86,7 +91,7 @@ function App() {
                     apps={[...navigateCommands]}
                 />
             </div>
-            <Preview animationTime={startAnimationTime}/>
+            <Preview animationTime={startAnimationTime} />
         </>
     );
 }

@@ -6,7 +6,7 @@ import { makeAutoInput } from "utils/autoInput";
 import styles from "./Preview.module.css";
 
 const Preview = ({ animationTime }) => {
-    const congratulations = "Hello, world!";
+    const congratulations = "Hello, World!";
     const [text, setText] = useState("");
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -25,7 +25,6 @@ const Preview = ({ animationTime }) => {
         setTimeout(() => {
             setIsLoaded(true);
         }, animationTime);
-        console.log("Preview");
     }, []);
 
     return (

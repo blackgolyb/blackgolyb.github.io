@@ -2,7 +2,8 @@
     white-space: pre-wrap;
 }
 
-.command-btn {
+.command-btn,
+.command-btn *{
     background: none;
     border: none;
     margin: 0;
