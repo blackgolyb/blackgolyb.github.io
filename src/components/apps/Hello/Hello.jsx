@@ -1,12 +1,12 @@
-import React, { useEffect, useState, forwardRef } from "react";
+import React from "react";
 
-import { Str, useAutoInputComponent } from "utils/autoInput";
+import { Str } from "utils/autoInput";
+
+import AutoInputComponent from "components/AutoInputComponent/AutoInputComponent";
 
 import style from "./Hello.module.css";
 
 const Hello = (props) => {
-    const [text, setText] = useAutoInputComponent(30, [-20, 20]);
-
     const t1 = `Hello! Welcome to my portfolio terminal.
 
 This is not your typical website - it's designed to resemble a command line interface, where you can navigate through my projects and learn more about me using commands.
@@ -40,16 +40,26 @@ Let's start from about section`;
         props.terminalRef?.current.emulateCommand(command);
     };
 
-    useEffect(() => {
-        setText(
-            <div>
+    const onAnimationFinish = () => {
+        setTimeout(() => {
+            emulateCommand("about");
+        }, 500);
+        props.terminalRef?.current.exit();
+    };
+
+    return (
+        <AutoInputComponent
+            callback={onAnimationFinish}
+        >
+            <div
+            className={style["hello"]}>
                 <p>
                     <Str>{t1}</Str>
                 </p>
                 <ul>
                     {apps.map((app) => {
                         return (
-                            <li>
+                            <li key={app.name}>
                                 <button
                                     className={style["command-btn"]}
                                     onClick={() => {
@@ -66,17 +76,9 @@ Let's start from about section`;
                 <p>
                     <Str>{t2}</Str>
                 </p>
-            </div>,
-            () => {
-                setTimeout(() => {
-                    emulateCommand("about");
-                }, 500);
-                props.terminalRef?.current.exit();
-            }
-        );
-    }, []);
-
-    return <div className={style["hello"]}>{text}</div>;
+            </div>
+        </AutoInputComponent>
+    );
 };
 
 export default Hello;
