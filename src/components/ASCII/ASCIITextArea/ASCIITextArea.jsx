@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-import ABCASCIIInput from "components/ASCII/ABCASCIIInput/ABCASCIIInput";
+import AbstractASCIIInput from "components/ASCII/AbstractASCIIInput/AbstractASCIIInput";
 
 import styles from "./ASCIITextArea.module.css";
 
@@ -9,7 +9,7 @@ const ASCIITextArea = forwardRef((props, ref) => {
         return <textarea ref={ref} {...props} />;
     });
 
-    return <ABCASCIIInput ref={ref} inputelem={TextArea} {...props} />;
+    return <AbstractASCIIInput ref={ref} inputelem={TextArea} {...props} />;
 });
 
 export default ASCIITextArea;

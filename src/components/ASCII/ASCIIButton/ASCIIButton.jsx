@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-import ABCASCIIInput from "components/ASCII/ABCASCIIInput/ABCASCIIInput";
+import AbstractASCIIInput from "components/ASCII/AbstractASCIIInput/AbstractASCIIInput";
 
 import styles from "./ASCIIButton.module.css";
 
@@ -10,7 +10,7 @@ const ASCIIButton = forwardRef((props, ref) => {
     });
 
     return (
-        <ABCASCIIInput
+        <AbstractASCIIInput
             ref={ref}
             inputelem={Button}
             {...props}

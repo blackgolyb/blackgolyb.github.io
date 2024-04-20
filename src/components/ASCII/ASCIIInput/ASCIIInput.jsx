@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-import ABCASCIIInput from "components/ASCII/ABCASCIIInput/ABCASCIIInput";
+import AbstractASCIIInput from "components/ASCII/AbstractASCIIInput/AbstractASCIIInput";
 
 import styles from "./ASCIIInput.module.css";
 
@@ -9,7 +9,7 @@ const ASCIIInput = forwardRef((props, ref) => {
         return <input ref={ref} {...props} />;
     });
 
-    return <ABCASCIIInput ref={ref} inputelem={Input} {...props} />;
+    return <AbstractASCIIInput ref={ref} inputelem={Input} {...props} />;
 });
 
 export default ASCIIInput;

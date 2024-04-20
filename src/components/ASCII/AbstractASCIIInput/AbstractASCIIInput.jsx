@@ -8,9 +8,9 @@ import React, {
 
 import { getTextSizeInElement } from "utils/utils.js";
 
-import styles from "./ABCASCIIInput.module.css";
+import styles from "./AbstractASCIIInput.module.css";
 
-const ABCASCIIInput = forwardRef((props, ref) => {
+const AbstractASCIIInput = forwardRef((props, ref) => {
     const [inputASCII, setInputASCII] = useState("");
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
@@ -55,7 +55,7 @@ const ABCASCIIInput = forwardRef((props, ref) => {
             inputASCIIRef.current
         );
         inputRef.current.style.width = w - fontSize.width * 2 + "px";
-        inputRef.current.style.height = h - fontSize.height * 2 + "px";
+        inputRef.current.style.height = h - fontSize.height * 3 + "px";
     };
 
     const updateInput = () => {
@@ -129,4 +129,4 @@ const ABCASCIIInput = forwardRef((props, ref) => {
     );
 });
 
-export default ABCASCIIInput;
+export default AbstractASCIIInput;
