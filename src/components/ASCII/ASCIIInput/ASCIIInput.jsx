@@ -9,7 +9,7 @@ const ASCIIInput = forwardRef((props, ref) => {
         return <input ref={ref} {...props} />;
     });
 
-    return <AbstractASCIIInput ref={ref} inputelem={Input} {...props} />;
+    return <AbstractASCIIInput ref={ref} InputElem={Input} {...props} />;
 });
 
 export default ASCIIInput;

@@ -16,18 +16,21 @@ const AbstractASCIIInput = forwardRef((props, ref) => {
     const wrapperRef = useRef(null);
     const inputASCIIRef = useRef(null);
 
+    const inputElemProps = {...props};
+    const {parentProps, InputElem, classNameInputElem} = props;
+    delete inputElemProps.parentProps;
+    delete inputElemProps.InputElem;
+    delete inputElemProps.classNameInputElem ?? "";
+
     const updateASCIIInput = () => {
-        if (!wrapperRef) {
+        if (!wrapperRef.current) {
             return;
         }
 
         const w = wrapperRef.current.offsetWidth;
         const h = wrapperRef.current.offsetHeight;
 
-        const fontSize = getTextSizeInElement(
-            "-",
-            inputASCIIRef.current
-        );
+        const fontSize = getTextSizeInElement("-", inputASCIIRef.current);
 
         if (fontSize.width == 0 || fontSize.height == 0) {
             return;
@@ -44,16 +47,13 @@ const AbstractASCIIInput = forwardRef((props, ref) => {
     };
 
     const updateInputSize = () => {
-        if (!wrapperRef || !inputRef) {
+        if (!wrapperRef.current || !inputRef.current) {
             return;
         }
 
         const w = wrapperRef.current.offsetWidth;
         const h = wrapperRef.current.offsetHeight;
-        const fontSize = getTextSizeInElement(
-            "-",
-            inputASCIIRef.current
-        );
+        const fontSize = getTextSizeInElement("-", inputASCIIRef.current);
         inputRef.current.style.width = w - fontSize.width * 2 + "px";
         inputRef.current.style.height = h - fontSize.height * 3 + "px";
     };
@@ -78,7 +78,6 @@ const AbstractASCIIInput = forwardRef((props, ref) => {
 
         return () => {
             window.removeEventListener("resize", updateInput);
-            resizeObserver.unobserve(wrapperRef.current);
         };
     }, []);
 
@@ -87,11 +86,7 @@ const AbstractASCIIInput = forwardRef((props, ref) => {
     });
 
     const getValue = () => {
-        if (!inputRef) {
-            return undefined;
-        }
-
-        return inputRef.current.value;
+        return inputRef?.current.value;
     };
 
     const setValue = (value) => {
@@ -114,15 +109,16 @@ const AbstractASCIIInput = forwardRef((props, ref) => {
             }}
             className={styles["input"] + " " + props.className || ""}
             ref={wrapperRef}
+            {...parentProps}
         >
             <span ref={inputASCIIRef} className={styles["input-ascii"]}>
                 {inputASCII}
             </span>
-            <props.inputelem
-                {...props}
+            <InputElem
+                {...inputElemProps}
                 ref={inputRef}
                 className={
-                    styles["input-elem"] + " " + props.classnameinputelem || ""
+                    styles["input-elem"] + " " + classNameInputElem
                 }
             />
         </div>

@@ -9,7 +9,7 @@ const ASCIITextArea = forwardRef((props, ref) => {
         return <textarea ref={ref} {...props} />;
     });
 
-    return <AbstractASCIIInput ref={ref} inputelem={TextArea} {...props} />;
+    return <AbstractASCIIInput ref={ref} InputElem={TextArea} {...props} />;
 });
 
 export default ASCIITextArea;

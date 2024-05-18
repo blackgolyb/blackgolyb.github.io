@@ -9,14 +9,17 @@ const ASCIIButton = forwardRef((props, ref) => {
         return <button ref={ref} {...props} />;
     });
 
+    const defaultOnClick = (e) => {};
+
     return (
         <AbstractASCIIInput
             ref={ref}
-            inputelem={Button}
+            InputElem={Button}
+            parentProps={{ onClick: props.onClick ?? defaultOnClick }}
             {...props}
             className={props.className + " " + styles["button"]}
-            classnameinputelem={
-                props.classnameinputelem + " " + styles["button-input"]
+            classNameInputElem={
+                props.classNameInputElem + " " + styles["button-input"]
             }
         />
     );
