@@ -1,0 +1,36 @@
+.command-inputted {
+    white-space: pre-wrap;
+}
+
+.command-input {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 14pt;
+    margin: 0;
+    padding: 0;
+    width: 0;
+    height: 0;
+}
+
+@keyframes blink {
+    0%,
+    100% {
+        visibility: visible;
+    }
+    50% {
+        visibility: hidden;
+    }
+}
+
+.command-input:focus + .cursor {
+    background-color: #fff;
+    animation: blink 1.4s steps(1, end) infinite;
+}
+
+.cursor {
+    align-self: flex-end;
+    height: 1em;
+    width: 0.4em;
+    border: 1px solid #fff;
+}

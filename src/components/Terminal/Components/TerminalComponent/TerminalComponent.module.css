@@ -1,0 +1,21 @@
+.terminal {
+    position: relative;
+    background-color: #060918;
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    font-size: 16pt;
+}
+
+.input-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    visibility: hidden;
+}
+
+.input-section.visible {
+    visibility: visible;
+}

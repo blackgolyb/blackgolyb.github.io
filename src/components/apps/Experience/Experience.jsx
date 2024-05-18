@@ -1,11 +1,18 @@
 import React, { useEffect } from "react";
 
-const Experience = (props) => {
+import { appComponent } from "components/Terminal/Utils";
+
+const Experience = appComponent((props) => {
+    const { exit } = props.context.terminal;
+
     useEffect(() => {
-        props.terminalRef?.current.exit();
+        exit();
     }, []);
 
     return <div>Experience</div>;
-};
+});
 
-export default Experience;
+export default {
+    name: "experience",
+    run: Experience,
+};

@@ -1,0 +1,8 @@
+.command-inputted {
+    white-space: pre-wrap;
+}
+
+.input-prefix-span {
+    color: #1d99f3;
+    margin-right: 0.4em;
+}

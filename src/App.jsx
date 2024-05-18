@@ -1,14 +1,11 @@
 import { useRef, useEffect } from "react";
 
-import Terminal from "components/Terminal/Terminal";
+import Terminal from "components/Terminal";
+import { defaultPlugins as plugins } from "components/Terminal/Plugins";
 import Header from "components/Header/Header";
 import Button from "components/Button/Button";
+import apps from "components/apps";
 import Preview from "components/Preview/Preview";
-import Hello from "components/apps/Hello/Hello";
-import About from "components/apps/About/About";
-import Projects from "components/apps/Projects/Projects";
-import Experience from "components/apps/Experience/Experience";
-import Contact from "components/apps/Contact/Contact";
 
 import styles from "./App.module.css";
 
@@ -20,29 +17,6 @@ function App() {
     const emulateCommand = (command) => {
         terminalRef?.current.emulateCommand(command);
     };
-
-    const navigateCommands = [
-        {
-            name: "hello",
-            run: () => <Hello terminalRef={terminalRef} />,
-        },
-        {
-            name: "about",
-            run: () => <About terminalRef={terminalRef} />,
-        },
-        {
-            name: "experience",
-            run: () => <Experience terminalRef={terminalRef} />,
-        },
-        {
-            name: "projects",
-            run: () => <Projects terminalRef={terminalRef} />,
-        },
-        {
-            name: "contact",
-            run: () => <Contact terminalRef={terminalRef} />,
-        },
-    ];
 
     useEffect(() => {
         setTimeout(() => {
@@ -88,7 +62,8 @@ function App() {
                 <Terminal
                     className={styles["terminal"]}
                     ref={terminalRef}
-                    apps={[...navigateCommands]}
+                    plugins={plugins}
+                    apps={apps}
                 />
             </div>
             <Preview animationTime={startAnimationTime} />

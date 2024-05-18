@@ -1,0 +1,11 @@
+span.invalid {
+    color: #ed1515;
+}
+
+span.valid {
+    color: #11d116;
+}
+
+span.text {
+    color: #f67400;
+}

@@ -8,13 +8,18 @@ import ASCIIInput from "components/ASCII/ASCIIInput/ASCIIInput";
 import ASCIITextArea from "components/ASCII/ASCIITextArea/ASCIITextArea";
 import { sendEmail } from "services/email/email";
 
+import { appComponent } from "components/Terminal/Utils";
+
 import styles from "./Contact.module.css";
 
-const Contact = (props) => {
+const Contact = appComponent((props) => {
     const nameRef = useRef(null);
     const emailRef = useRef(null);
     const messageRef = useRef(null);
     const [sectionNameASCII, setSectionNameASCII] = useState("");
+
+    const { exit } = props.context.terminal;
+
     const sectionName = "Contact";
 
     const send_email = () => {
@@ -32,14 +37,15 @@ const Contact = (props) => {
         );
     };
 
-    const cancel = () => {
-        props.terminalRef?.current.exit();
+    const cancelForm = (e) => {
+        e.preventDefault();
+        exit();
     };
 
     const sendForm = (e) => {
         e.preventDefault();
         send_email();
-        cancel();
+        exit();
     };
 
     useEffect(() => {
@@ -64,12 +70,7 @@ const Contact = (props) => {
     return (
         <div className={styles["contact"]}>
             <section className={styles["header"]}>{sectionNameASCII}</section>
-            <form
-                onSubmit={(e) => {
-                    sendForm(e);
-                }}
-                className={styles["form"]}
-            >
+            <form className={styles["form"]}>
                 <ASCIIInput
                     type="text"
                     placeholder="Your name"
@@ -93,19 +94,23 @@ const Contact = (props) => {
                 <section className={styles["button-section"]}>
                     <ASCIIButton
                         className={styles["form-button"]}
-                        onClick={(e) => {
-                            cancel();
-                            e.preventDefault();
-                        }}
+                        onClick={cancelForm}
                     >
                         Cancel
                     </ASCIIButton>
-                    <ASCIIButton className={styles["form-button"]}>
+                    <ASCIIButton
+                        className={styles["form-button"]}
+                        onClick={sendForm}
+                    >
                         Submit
                     </ASCIIButton>
                 </section>
             </form>
         </div>
     );
+});
+
+export default {
+    name: "contact",
+    run: Contact,
 };
-export default Contact;

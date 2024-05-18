@@ -2,10 +2,11 @@ import React from "react";
 
 import { Str } from "utils/autoInput";
 import AutoInputComponent from "components/AutoInputComponent/AutoInputComponent";
+import { appComponent } from "components/Terminal/Utils";
 
 import style from "./Hello.module.css";
 
-const Hello = (props) => {
+const Hello = appComponent((props) => {
     const t1 = `Hello! Welcome to my portfolio terminal.
 
 This is not your typical website - it's designed to resemble a command line interface, where you can navigate through my projects and learn more about me using commands.
@@ -35,15 +36,13 @@ Let's start from about section`;
         },
     ];
 
-    const emulateCommand = (command) => {
-        props.terminalRef?.current.emulateCommand(command);
-    };
+    const { exit, emulateCommand } = props.context.terminal;
 
     const onAnimationFinish = () => {
         setTimeout(() => {
             emulateCommand("about");
         }, 500);
-        props.terminalRef?.current.exit();
+        exit();
     };
 
     return (
@@ -78,6 +77,9 @@ Let's start from about section`;
             </div>
         </AutoInputComponent>
     );
-};
+});
 
-export default Hello;
+export default {
+    name: "hello",
+    run: Hello,
+};

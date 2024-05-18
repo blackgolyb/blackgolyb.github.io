@@ -4,18 +4,16 @@ import ASCIIButton from "components/ASCII/ASCIIButton/ASCIIButton";
 
 import { Str } from "utils/autoInput";
 import AutoInputComponent from "components/AutoInputComponent/AutoInputComponent";
+import { appComponent } from "components/Terminal/Utils";
 
 import styles from "./About.module.css";
 
-const About = (props) => {
+const About = appComponent((props) => {
     const text = "Test text for test";
+    const { exit, emulateCommand } = props.context.terminal;
 
     const onAnimationFinish = () => {
-        props.terminalRef?.current.exit();
-    };
-
-    const emulateCommand = (command) => {
-        props.terminalRef?.current.emulateCommand(command);
+        exit();
     };
 
     return (
@@ -42,6 +40,9 @@ const About = (props) => {
             </ASCIIButton>
         </>
     );
-};
+});
 
-export default About;
+export default {
+    name: "about",
+    run: About,
+};
