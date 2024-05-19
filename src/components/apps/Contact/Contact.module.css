@@ -38,6 +38,16 @@
     background-color: #2c2c2c;
 }
 
+.button-section {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.button-section .form-button {
+    width: 50%;
+}
+
 .form-input {
     height: 100px;
 }
@@ -46,11 +56,57 @@
     resize: vertical;
 }
 
-.button-section {
-    display: flex;
-    justify-content: space-between;
+
+@media only screen and (max-width: 40em) {
+    .form {
+        width: 100%;
+    }
+
+    .button-section .form-button {
+        width: 100%;
+    }
 }
 
-.button-section .form-button {
-    width: 50%;
+/* Small devices such as large phones (640px and up) */
+@media only screen and (min-width: 40em) {
+    .form {
+        width: 90%;
+    }
+
+    .button-section .form-button {
+        width: 100%;
+    }
+}
+
+/* Medium devices such as tablets (768px and up) */
+@media only screen and (min-width: 48em) {
+    .form {
+        width: 90%;
+    }
+
+    .button-section .form-button {
+        width: 50%;
+    }
+}
+
+/* Large devices such as laptops (1024px and up) */
+@media only screen and (min-width: 64em) {
+    .form {
+        width: 50%;
+    }
+
+    .button-section .form-button {
+        width: 50%;
+    }
+}
+
+/* Largest devices such as desktops (1280px and up) */
+@media only screen and (min-width: 80em) {
+    .form {
+        width: 40%;
+    }
+
+    .button-section .form-button {
+        width: 50%;
+    }
 }
