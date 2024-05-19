@@ -3,6 +3,8 @@
     background-color: #060918;
     padding: 20px;
 
+    overflow-x: hidden;
+
     display: flex;
     flex-direction: column;
 

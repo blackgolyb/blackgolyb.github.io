@@ -26,6 +26,7 @@ const TerminalComponent = forwardRef((props, ref) => {
     const { userInput } = context;
 
     const inputRef = useRef(null);
+    const terminalRef = useRef(null);
 
     const customShortcuts = context.customShortcuts;
     const formatUserInput = context.formatUserInput;
@@ -119,6 +120,21 @@ const TerminalComponent = forwardRef((props, ref) => {
         setTerminalStatus("idle");
     };
 
+    const scrollBottom = () => {
+        terminalRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+        });
+    };
+
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver((entries, observer) => {
+            scrollBottom();
+        });
+
+        resizeObserver.observe(terminalRef.current);
+    }, []);
+
     useEffect(() => {
         if (terminalStatus !== "programRunning") {
             focusInput();
@@ -147,7 +163,7 @@ const TerminalComponent = forwardRef((props, ref) => {
     });
 
     return (
-        <div className={terminalClass} onClick={focusInput}>
+        <div className={terminalClass} ref={terminalRef} onClick={focusInput}>
             <TerminalHistory history={componentsHistory} />
             <Prompt
                 className={inputSectionClass}
