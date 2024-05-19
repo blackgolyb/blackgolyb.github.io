@@ -13,7 +13,18 @@ const mergeRefs = (...refs) => {
     };
 };
 
-const withASCII = (Component) => {
+const strRepeatPattern = (pattern, len) => {
+    const numOfRepeats = Math.ceil(len / pattern.length);
+    return pattern.repeat(numOfRepeats).slice(0, len);
+};
+
+const defaultConfig = {
+    verticalPattern: "|",
+    horizontalPattern: "-",
+    corners: ["+", "+", "+", "+"],
+};
+
+const withASCII = (Component, config) => {
     return forwardRef((props, ref) => {
         const [ASCIIBorder, setASCIIBorder] = useState("");
         const innerRef = useRef(null);
@@ -22,9 +33,17 @@ const withASCII = (Component) => {
 
         const inputElemProps = { ...props };
         const { parentProps, classNameInputElem } = props;
+        const propsConfig = props.borderConfig;
         delete inputElemProps.parentProps;
+        delete inputElemProps.borderConfig;
         delete inputElemProps.classNameInputElem ?? "";
 
+        const { verticalPattern, horizontalPattern, corners } = {
+            ...defaultConfig,
+            ...(config ?? {}),
+            ...(propsConfig ?? {}),
+        };
+        
         const updateASCIIInput = () => {
             if (!wrapperRef.current) {
                 return;
@@ -42,11 +61,25 @@ const withASCII = (Component) => {
             const wNum = Math.max(Math.floor(w / fontSize.width) - 2, 0);
             const hNum = Math.max(Math.floor(h / fontSize.height) - 2, 0);
 
-            const borderHorizontalStr = "+" + "-".repeat(wNum) + "+\n";
+            const topHorizontalStr =
+                corners[0] +
+                strRepeatPattern(horizontalPattern, wNum) +
+                corners[1] +
+                "\n";
 
-            const bodyStr = ("|" + " ".repeat(wNum) + "|\n").repeat(hNum);
+            const bottomHorizontalStr =
+                corners[3] +
+                strRepeatPattern(horizontalPattern, wNum) +
+                corners[2] +
+                "\n";
 
-            setASCIIBorder(borderHorizontalStr + bodyStr + borderHorizontalStr);
+            const verticalBorder = strRepeatPattern(verticalPattern, hNum);
+            let bodyStr = "";
+            for (let vBorder of verticalBorder) {
+                bodyStr += vBorder + " ".repeat(wNum) + vBorder + "\n";
+            }
+
+            setASCIIBorder(topHorizontalStr + bodyStr + bottomHorizontalStr);
         };
 
         const updateInputSize = () => {
@@ -103,7 +136,6 @@ const withASCII = (Component) => {
                 <Component
                     {...inputElemProps}
                     ref={mergeRefs(ref, innerRef)}
-                    // ref={innerRef}
                     className={styles["input-elem"] + " " + classNameInputElem}
                 />
             </div>

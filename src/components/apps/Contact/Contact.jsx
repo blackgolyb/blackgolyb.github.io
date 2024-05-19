@@ -39,7 +39,7 @@ const Contact = appComponent((props) => {
         e.preventDefault();
         exit();
     };
-    
+
     const sendForm = (e) => {
         e.preventDefault();
         sendFormEmail();
@@ -91,6 +91,9 @@ const Contact = appComponent((props) => {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Your message"
                     className={styles["form-textarea"]}
+                    borderConfig={{
+                        corners: ["+", "+", "@", "+"],
+                    }}
                 />
                 <section className={styles["button-section"]}>
                     <ASCIIButton
