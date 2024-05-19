@@ -82,12 +82,6 @@ const TerminalComponent = forwardRef((props, ref) => {
     };
 
     const emulateCommand = (command, run = true) => {
-        if (terminalStatus !== "idle") {
-            return -1;
-        }
-
-        setTerminalStatus("emulating");
-
         const defaultInterval = 150;
         let i = 0;
 
@@ -108,8 +102,14 @@ const TerminalComponent = forwardRef((props, ref) => {
             setTimeout(doIteration, delay);
         };
 
-        doIteration();
-        return 0;
+        setTerminalStatus((prevStatus) => {
+            if (prevStatus !== "idle") {
+                return prevStatus;
+            }
+
+            setTimeout(doIteration, 0);
+            return "emulating";
+        });
     };
 
     const exit = (statusCode = 0) => {
