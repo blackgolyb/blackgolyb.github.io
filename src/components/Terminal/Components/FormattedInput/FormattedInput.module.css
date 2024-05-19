@@ -1,5 +1,7 @@
-.command-inputted {
-    white-space: pre-wrap;
+.wrap * {
+    display: inline;
+    white-space: break-spaces;
+    word-break: break-all;
 }
 
 .command-input {
@@ -29,7 +31,7 @@
 }
 
 .cursor {
-    align-self: flex-end;
+    display: inline-block;
     height: 1em;
     width: 0.4em;
     border: 1px solid #fff;

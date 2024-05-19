@@ -169,7 +169,7 @@ const TerminalComponent = forwardRef((props, ref) => {
                 className={inputSectionClass}
                 ref={inputRef}
                 value={userInput}
-                onChange={setText}
+                setValue={setText}
                 formatUserInput={formatUserInput}
                 onCommandEnter={runCommand}
                 customShortcuts={customShortcuts}

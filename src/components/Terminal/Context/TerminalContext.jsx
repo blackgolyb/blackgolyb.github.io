@@ -13,7 +13,7 @@ export const TerminalProvider = (props) => {
     const [userInput, setUserInput] = useState("");
 
     const formatUserInput = (text) => {
-        return text;
+        return <span>{text}</span>;
     };
     const onCommandRun = (command) => {};
     const setText = (text) => {

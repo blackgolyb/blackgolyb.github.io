@@ -1,84 +1,89 @@
-import React, {
-    forwardRef,
-} from "react";
-
+import React, { forwardRef, useState } from "react";
 
 import styles from "./FormattedInput.module.css";
 
 const FormattedInput = forwardRef((props, ref) => {
-    const setText = props.onChange ?? (() => {});
-    const userInput = props.value ?? "";
+    const [innerValue, setInnerValue] = useState("");
+    const setValue = (text) => {
+        if (props.setValue) {
+            props.setValue(text);
+        } else {
+            setInnerValue(text);
+        }
+    };
+    const value = props.value ?? innerValue;
 
-    const customShortcuts = props.customShortcuts ?? [];
     const formatUserInput =
         props.formatUserInput ??
         ((text) => {
-            return text;
+            return <span>{text}</span>;
         });
     const onCommandEnter = props.onCommandEnter ?? ((commandText) => {});
 
-    const onUserInputKeyDown = (e) => {
-        let runDefault = true;
-
-        for (const shortcutId in customShortcuts) {
-            const res = customShortcuts[shortcutId](e);
-            runDefault = !res;
-            if (res) break;
-        }
-
-        if (!runDefault) {
-            return;
-        }
-
-        if (e.key === "Backspace") {
+    const deleteWord = (e) => {
+        const backspacePressed = e.key === "Backspace";
+        
+        if (backspacePressed) {
             if (e.ctrlKey) {
-                const split_input = userInput.split(" ");
+                const split_input = value.split(" ");
                 let index;
-
+                
                 for (index = split_input.length - 2; index > 0; index--) {
                     const element = split_input[index];
                     if (element.length != 0) break;
                 }
-                setText(split_input.slice(0, index + 1).join(" "));
+                setValue(split_input.slice(0, index + 1).join(" "));
             } else {
-                setText(userInput.slice(0, -1));
+                setValue((value) => value.slice(0, -1));
             }
-        } else if (e.key === "Enter") {
-            onCommandEnter(userInput);
-        } else if (e.key === "v" && e.ctrlKey) {
-        } else if (
-            (e.keyCode >= "a".charCodeAt(0) &&
-                e.keyCode <= "z".charCodeAt(0)) ||
-            (e.keyCode >= "A".charCodeAt(0) &&
-                e.keyCode <= "Z".charCodeAt(0)) ||
-            (e.keyCode >= "0".charCodeAt(0) &&
-                e.keyCode <= "9".charCodeAt(0)) ||
-            "\"'\\|></+=-_~`!@#$%^&*(){}[]?., ".includes(e.key)
-        ) {
-            setText(userInput + e.key);
+            e.stopPropagation();
+            e.preventDefault();
+        }
+
+        return !backspacePressed;
+    };
+
+    const commandEnter = (e) => {
+        if (e.key === "Enter") {
+            onCommandEnter(value);
+        }
+    };
+
+    const customShortcuts = [
+        ...(props.customShortcuts ?? []),
+        // deleteWord,
+        commandEnter,
+    ];
+
+    const onUserInputKeyDown = (e) => {
+        let propagate = true;
+
+        for (const shortcutId in customShortcuts) {
+            propagate = customShortcuts[shortcutId](e);
+            if (propagate) break;
         }
     };
 
     const onUserInputPaste = (e) => {
-        setText(userInput + e.clipboardData.getData("Text"));
+        setValue(value + e.clipboardData.getData("Text"));
     };
 
     return (
-        <>
-            <div className={styles["command-inputted"]}>
-                {formatUserInput(userInput)}
-            </div>
+        <div className={styles["wrap"]}>
+            {formatUserInput(value)}
             <input
                 type="text"
                 ref={ref}
                 className={styles["command-input"]}
-                value=""
-                onChange={(e) => {}}
+                value={value}
+                onChange={(e) => {
+                    setValue(e.target.value);
+                }}
                 onPaste={onUserInputPaste}
                 onKeyDown={onUserInputKeyDown}
             />
             <div className={styles["cursor"]}></div>
-        </>
+        </div>
     );
 });
 

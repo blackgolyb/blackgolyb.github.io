@@ -32,7 +32,7 @@ const plugin = {
                 ? "valid"
                 : "invalid";
 
-            const commandFlags = unformattedInput.slice(
+            const commandArgs = unformattedInput.slice(
                 command.programName.length + leadingSpacesIndex
             );
 
@@ -42,7 +42,7 @@ const plugin = {
                     <span className={styles[isProgramValid]}>
                         {command.programName}
                     </span>
-                    {commandFlags}
+                    <span>{commandArgs}</span>
                 </>
             );
         };
