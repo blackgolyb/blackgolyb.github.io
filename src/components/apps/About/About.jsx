@@ -1,6 +1,6 @@
 import React from "react";
 
-import ASCIIButton from "components/ASCII/ASCIIButton/ASCIIButton";
+import { ASCIIButton } from "components/ASCII";
 
 import { Str } from "utils/autoInput";
 import AutoInputComponent from "components/AutoInputComponent/AutoInputComponent";

@@ -1,15 +1,7 @@
 import React, { forwardRef } from "react";
 
-import AbstractASCIIInput from "components/ASCII/AbstractASCIIInput/AbstractASCIIInput";
+import withASCII from "../withASCII/withASCII";
 
-import styles from "./ASCIIInput.module.css";
-
-const ASCIIInput = forwardRef((props, ref) => {
-    const Input = forwardRef((props, ref) => {
-        return <input ref={ref} {...props} />;
-    });
-
-    return <AbstractASCIIInput ref={ref} InputElem={Input} {...props} />;
-});
+const ASCIIInput = withASCII(forwardRef((props, ref) => <input ref={ref} {...props} />));
 
 export default ASCIIInput;

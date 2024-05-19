@@ -1,11 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import figlet from "figlet";
 import standard from "figlet/importable-fonts/Standard.js";
 figlet.parseFont("Standard", standard);
 
-import ASCIIButton from "components/ASCII/ASCIIButton/ASCIIButton";
-import ASCIIInput from "components/ASCII/ASCIIInput/ASCIIInput";
-import ASCIITextArea from "components/ASCII/ASCIITextArea/ASCIITextArea";
+import { ASCIIButton, ASCIIInput, ASCIITextArea } from "components/ASCII";
 import { sendEmail } from "services/email/email";
 
 import { appComponent } from "components/Terminal/Utils";
@@ -13,20 +11,20 @@ import { appComponent } from "components/Terminal/Utils";
 import styles from "./Contact.module.css";
 
 const Contact = appComponent((props) => {
-    const nameRef = useRef(null);
-    const emailRef = useRef(null);
-    const messageRef = useRef(null);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [message, setMessage] = useState("");
     const [sectionNameASCII, setSectionNameASCII] = useState("");
 
     const { exit } = props.context.terminal;
 
     const sectionName = "Contact";
 
-    const send_email = () => {
+    const sendFormEmail = () => {
         sendEmail({
-            name: nameRef.current.getValue(),
-            email: emailRef.current.getValue(),
-            message: messageRef.current.getValue(),
+            name: name,
+            email: email,
+            message: message,
         }).then(
             (response) => {
                 console.log("SUCCESS!", response.status, response.text);
@@ -41,10 +39,10 @@ const Contact = appComponent((props) => {
         e.preventDefault();
         exit();
     };
-
+    
     const sendForm = (e) => {
         e.preventDefault();
-        send_email();
+        sendFormEmail();
         exit();
     };
 
@@ -75,19 +73,22 @@ const Contact = appComponent((props) => {
                     type="text"
                     placeholder="Your name"
                     name="name"
-                    ref={nameRef}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className={styles["form-input"]}
                 />
                 <ASCIIInput
                     type="text"
                     placeholder="Your Email"
                     name="email"
-                    ref={emailRef}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className={styles["form-input"]}
                 />
                 <ASCIITextArea
                     name="message"
-                    ref={messageRef}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     placeholder="Your message"
                     className={styles["form-textarea"]}
                 />

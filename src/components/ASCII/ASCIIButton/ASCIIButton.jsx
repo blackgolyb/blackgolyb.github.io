@@ -1,26 +1,27 @@
 import React, { forwardRef } from "react";
 
-import AbstractASCIIInput from "components/ASCII/AbstractASCIIInput/AbstractASCIIInput";
-
 import styles from "./ASCIIButton.module.css";
 
-const ASCIIButton = forwardRef((props, ref) => {
-    const Button = forwardRef((props, ref) => {
+import withASCII from "../withASCII/withASCII";
+
+const ASCIIButtonRaw = withASCII(
+    forwardRef((props, ref) => {
         return <button ref={ref} {...props} />;
-    });
+    })
+);
 
-    const defaultOnClick = (e) => {};
-
+const ASCIIButton = forwardRef((props, ref) => {
+    const onClick = (e) => {
+        e.stopPropagation();
+        props.onClick?.(e);
+    };
+    
     return (
-        <AbstractASCIIInput
-            ref={ref}
-            InputElem={Button}
-            parentProps={{ onClick: props.onClick ?? defaultOnClick }}
+        <ASCIIButtonRaw
             {...props}
+            parentProps={{ onClick: onClick }}
             className={props.className + " " + styles["button"]}
-            classNameInputElem={
-                props.classNameInputElem + " " + styles["button-input"]
-            }
+            ref={ref}
         />
     );
 });
