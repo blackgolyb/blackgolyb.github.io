@@ -19,6 +19,7 @@ const ASCIIButton = forwardRef((props, ref) => {
     return (
         <ASCIIButtonRaw
             {...props}
+            onClick={onClick}
             parentProps={{ onClick: onClick }}
             className={props.className + " " + styles["button"]}
             ref={ref}
