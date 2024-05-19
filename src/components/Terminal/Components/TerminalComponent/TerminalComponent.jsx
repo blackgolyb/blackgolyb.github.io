@@ -63,9 +63,8 @@ const TerminalComponent = forwardRef((props, ref) => {
 
         const { result, statusCode } = evaluateCommand(commandText);
 
+        setText("");
         if (result === undefined) {
-            setText("");
-            focusInput();
             return;
         }
 
@@ -77,9 +76,6 @@ const TerminalComponent = forwardRef((props, ref) => {
                 commandId: history.length,
             }),
         ]);
-
-        setText("");
-        focusInput();
     };
 
     const emulateCommand = (command, run = true) => {
@@ -120,6 +116,13 @@ const TerminalComponent = forwardRef((props, ref) => {
         setTerminalStatus("idle");
     };
 
+    const focusInput = () => {
+        inputRef?.current.focus({
+            preventScroll: true,
+        });
+        scrollBottom();
+    };
+
     const scrollBottom = () => {
         terminalRef.current.scrollIntoView({
             behavior: "smooth",
@@ -151,10 +154,6 @@ const TerminalComponent = forwardRef((props, ref) => {
         setText,
         emulateCommand,
         exit,
-    };
-
-    const focusInput = () => {
-        inputRef?.current.focus();
     };
 
     const terminalClass = classNames(styles["terminal"], props.className);
