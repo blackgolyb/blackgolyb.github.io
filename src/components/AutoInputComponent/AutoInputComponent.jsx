@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 
+import { config } from "core";
 import { useAutoInputComponent } from "utils/autoInput";
+
+const {defaultInterval, defaultRandomRange} = config;
 
 const AutoInputComponent = (props) => {
     const [component, setComponent] = useAutoInputComponent(
-        props.interval || 30,
-        props.randomRange || [-20, 20]
+        props.interval || defaultInterval,
+        props.randomRange || defaultRandomRange
     );
 
     useEffect(() => {

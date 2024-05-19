@@ -6,12 +6,13 @@ import Header from "components/Header/Header";
 import Button from "components/Button/Button";
 import apps from "components/apps";
 import Preview from "components/Preview/Preview";
+import { config } from "core";
 
 import styles from "./App.module.css";
 
+const { introTime } = config;
+
 function App() {
-    // const startAnimationTime = 1000;
-    const startAnimationTime = 9000;
     const terminalRef = useRef(null);
 
     const emulateCommand = (command) => {
@@ -21,12 +22,12 @@ function App() {
     useEffect(() => {
         setTimeout(() => {
             emulateCommand("hello");
-        }, startAnimationTime + 1500);
+        }, introTime + 1500);
     }, []);
 
     return (
         <>
-            <Header headerResizeDelay={startAnimationTime}>
+            <Header headerResizeDelay={introTime}>
                 <nav className={styles["header-nav"]}>
                     <Button
                         onClick={() => {
@@ -66,7 +67,7 @@ function App() {
                     apps={apps}
                 />
             </div>
-            <Preview animationTime={startAnimationTime} />
+            <Preview animationTime={introTime} />
         </>
     );
 }

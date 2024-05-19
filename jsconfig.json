@@ -4,6 +4,7 @@
         "paths": {
             "src/*": ["src/*"],
             "components/*": ["components/*"],
+            "core/*": ["core/*"],
             "hoc/*": ["hoc/*"],
             "assets/*": ["assets/*"],
             "constants/*": ["constants/*"],
