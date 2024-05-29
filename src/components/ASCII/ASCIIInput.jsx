@@ -4,7 +4,7 @@ import ASCIIWrapper from "./ASCIIWrapper/ASCIIWrapper";
 import { BottomBorder, TopBorder } from "./ASCIIUtils";
 import { PriorityScope } from "src/components/AutoInput/AutoInput";
 
-const ASCIIInput = forwardRef((props, ref) => (
+const ASCIIInput = forwardRef(({ borderConfig, className, ...rest }, ref) => (
     <PriorityScope>
         <ASCIIWrapper
             border={
@@ -13,9 +13,10 @@ const ASCIIInput = forwardRef((props, ref) => (
                     <BottomBorder />
                 </>
             }
-            {...props}
+            borderConfig={borderConfig}
+            className={className}
         >
-            <input ref={ref} />
+            <input ref={ref} {...rest} />
         </ASCIIWrapper>
     </PriorityScope>
 ));

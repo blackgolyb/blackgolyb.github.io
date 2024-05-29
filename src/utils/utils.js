@@ -49,7 +49,7 @@ export const groupAndSort = ({ elems, groupingFunctions, sortFunction }) => {
             return elems.sort(sortFunction);
         }
         const grouped = Object.groupBy(elems, groupingFunctions[i]);
-        return Object.entries(grouped).map(([_, nextElems]) =>
+        return Object.entries(grouped).map(([, nextElems]) =>
             doIteration(nextElems, i + 1)
         );
     };

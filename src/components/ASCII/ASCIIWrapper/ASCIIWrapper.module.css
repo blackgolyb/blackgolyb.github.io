@@ -3,7 +3,7 @@
     position: absolute;
     line-height: 1;
     white-space: pre-wrap;
-    width: max-content;
+    width: max-content !important;
 
     top: 50%;
     left: 50%;

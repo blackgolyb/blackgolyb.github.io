@@ -46,7 +46,7 @@ const ASCIIWrapperComponent = ({
     border,
     children,
     className,
-    ...innerProps
+    ...rest
 }) => {
     const { setASCIIBorders } = useASCIIWrapperContext();
     const innerRef = useRef(null);
@@ -140,6 +140,7 @@ const ASCIIWrapperComponent = ({
             onClick={(e) => {
                 focusInput(e);
             }}
+            {...rest}
             className={styles["input"] + " " + (className || "")}
             ref={wrapperRef}
         >
@@ -157,7 +158,6 @@ const ASCIIWrapperComponent = ({
                 ref: mergeRefs(children.ref, innerRef),
                 className:
                     styles["input-elem"] + " " + children.props.className,
-                ...innerProps,
             })}
         </div>
     );

@@ -4,7 +4,7 @@ import ASCIIWrapper from "./ASCIIWrapper/ASCIIWrapper";
 import { BottomBorder, TopBorder } from "./ASCIIUtils";
 import { PriorityScope } from "src/components/AutoInput/AutoInput";
 
-const ASCIITextArea = forwardRef((props, ref) => (
+const ASCIITextArea = forwardRef(({ borderConfig, className, ...rest }, ref) => (
     <PriorityScope>
         <ASCIIWrapper
             border={
@@ -13,9 +13,10 @@ const ASCIITextArea = forwardRef((props, ref) => (
                     <BottomBorder />
                 </>
             }
-            {...props}
+            borderConfig={borderConfig}
+            className={className}
         >
-            <textarea ref={ref} />
+            <textarea ref={ref} {...rest} />
         </ASCIIWrapper>
     </PriorityScope>
 ));

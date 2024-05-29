@@ -7,6 +7,7 @@ import { BottomBorder, TopBorder } from "./ASCIIUtils";
 
 const ASCIIButton = forwardRef((props, ref) => {
     const onClick = (e) => {
+        console.log("onClick");
         e.stopPropagation();
         props.onClick?.(e);
     };
