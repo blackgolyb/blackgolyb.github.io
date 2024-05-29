@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import figlet from "figlet";
 import standard from "figlet/importable-fonts/Standard.js";
 figlet.parseFont("Standard", standard);

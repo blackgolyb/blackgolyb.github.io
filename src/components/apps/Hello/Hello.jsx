@@ -1,7 +1,4 @@
-import React from "react";
-
-import { Str } from "utils/autoInput";
-import AutoInputComponent from "components/AutoInputComponent/AutoInputComponent";
+import AutoInput from "components/AutoInput/AutoInput";
 import { appComponent } from "components/Terminal/Utils";
 
 import style from "./Hello.module.css";
@@ -46,13 +43,10 @@ Let's start from about section`;
     };
 
     return (
-        <AutoInputComponent
-            callback={onAnimationFinish}
-        >
-            <div
-            className={style["hello"]}>
+        <AutoInput callback={onAnimationFinish}>
+            <div className={style["hello"]}>
                 <p>
-                    <Str>{t1}</Str>
+                    <AutoInput.Str>{t1}</AutoInput.Str>
                 </p>
                 <ul>
                     {apps.map((app) => {
@@ -64,18 +58,22 @@ Let's start from about section`;
                                         emulateCommand(app.name);
                                     }}
                                 >
-                                    <b><Str>{app.name}</Str></b>
+                                    <b>
+                                        <AutoInput.Str>
+                                            {app.name}
+                                        </AutoInput.Str>
+                                    </b>
                                 </button>
-                                <Str>{` - ${app.description}`}</Str>
+                                <AutoInput.Str>{` - ${app.description}`}</AutoInput.Str>
                             </li>
                         );
                     })}
                 </ul>
                 <p>
-                    <Str>{t2}</Str>
+                    <AutoInput.Str>{t2}</AutoInput.Str>
                 </p>
             </div>
-        </AutoInputComponent>
+        </AutoInput>
     );
 });
 

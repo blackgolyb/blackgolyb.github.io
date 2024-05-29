@@ -42,3 +42,24 @@ export function getTextSizeInElement(text, element) {
     const font = getCanvasFont(element);
     return getTextSize(text, ...font);
 }
+
+export const groupAndSort = ({ elems, groupingFunctions, sortFunction }) => {
+    const doIteration = (elems, i = 0) => {
+        if (i >= groupingFunctions.length) {
+            return elems.sort(sortFunction);
+        }
+        const grouped = Object.groupBy(elems, groupingFunctions[i]);
+        return Object.entries(grouped).map(([_, nextElems]) =>
+            doIteration(nextElems, i + 1)
+        );
+    };
+    return doIteration(elems).flat(Infinity);
+};
+
+export const debounce = (func, delay) => {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => func(...args), delay);
+    };
+};
