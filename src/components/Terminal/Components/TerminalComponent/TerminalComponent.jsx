@@ -1,11 +1,11 @@
-import React, {
+import {
     useRef,
     forwardRef,
     useImperativeHandle,
     useEffect,
     memo,
 } from "react";
-import classNames from "classnames";
+import cn from "classnames";
 
 import { getRndInteger } from "utils/utils";
 import { useTerminalContext } from "../../Context/TerminalContext";
@@ -16,10 +16,11 @@ import styles from "./TerminalComponent.module.css";
 const TerminalHistory = memo(({ history }) => {
     return <section>{history}</section>;
 });
+TerminalHistory.displayName = "TerminalHistory";
 
-const TerminalComponent = forwardRef((props, ref) => {
+const TerminalComponent = forwardRef(({ apps, className }, ref) => {
     const context = useTerminalContext();
-    context.apps = props.apps;
+    context.apps = apps;
 
     const { componentsHistory, setComponentsHistory } = context;
     const { terminalStatus, setTerminalStatus } = context;
@@ -52,7 +53,7 @@ const TerminalComponent = forwardRef((props, ref) => {
             };
         }
 
-        return { result: app.run(command.args, context), statusCode: 0 };
+        return { result: app(command.args, context), statusCode: 0 };
     };
 
     const runCommand = (commandText) => {
@@ -156,8 +157,8 @@ const TerminalComponent = forwardRef((props, ref) => {
         exit,
     };
 
-    const terminalClass = classNames(styles["terminal"], props.className);
-    const inputSectionClass = classNames(styles["input-section"], {
+    const terminalClass = cn(styles["terminal"], className);
+    const inputSectionClass = cn(styles["input-section"], {
         [styles["visible"]]: terminalStatus !== "programRunning",
     });
 
@@ -176,5 +177,6 @@ const TerminalComponent = forwardRef((props, ref) => {
         </div>
     );
 });
+TerminalComponent.displayName = "TerminalComponent";
 
 export default TerminalComponent;

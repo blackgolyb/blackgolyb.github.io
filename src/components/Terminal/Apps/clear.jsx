@@ -1,10 +1,12 @@
-const clearCommand = (args, context) => {
-    context.setComponentsHistory([]);
-    context.terminal.exit();
-};
+import { withApp } from "../Utils";
 
-export default {
-    name: "clear",
-    run: clearCommand,
-    description: "clear all terminal history",
-};
+const clearCommand = withApp(
+    ({ context }) => {
+        context.setComponentsHistory([]);
+        context.terminal.exit();
+    },
+    "clear",
+    "clear all terminal history"
+);
+
+export default clearCommand;

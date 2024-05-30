@@ -1,10 +1,12 @@
-const echoCommand = (args, context) => {
-    context.terminal.exit();
-    return <p>{args.join(" ")}</p>;
-};
+import { withApp } from "../Utils";
 
-export default {
-    name: "echo",
-    run: echoCommand,
-    description: "display a line of text",
-};
+const echoCommand = withApp(
+    ({ args, context }) => {
+        context.terminal.exit();
+        return <p>{args.join(" ")}</p>;
+    },
+    "echo",
+    "display a line of text"
+);
+
+export default echoCommand;

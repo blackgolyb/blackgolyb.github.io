@@ -1,3 +1,3 @@
-import appComponent from "./appComponent";
+import withApp from "./withApp";
 
-export { appComponent };
+export { withApp };

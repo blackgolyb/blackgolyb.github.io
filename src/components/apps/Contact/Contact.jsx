@@ -6,11 +6,11 @@ figlet.parseFont("Standard", standard);
 import { ASCIIButton, ASCIIInput, ASCIITextArea } from "components/ASCII";
 import { sendEmail } from "services/email/email";
 
-import { appComponent } from "components/Terminal/Utils";
+import { withApp } from "components/Terminal/Utils";
 
 import styles from "./Contact.module.css";
 
-const Contact = appComponent((props) => {
+const Contact = withApp((props) => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
@@ -112,9 +112,6 @@ const Contact = appComponent((props) => {
             </form>
         </div>
     );
-});
+}, "contact");
 
-export default {
-    name: "contact",
-    run: Contact,
-};
+export default Contact;

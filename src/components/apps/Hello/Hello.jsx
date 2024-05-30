@@ -1,9 +1,9 @@
 import AutoInput from "components/AutoInput/AutoInput";
-import { appComponent } from "components/Terminal/Utils";
+import { withApp } from "components/Terminal/Utils";
 
 import style from "./Hello.module.css";
 
-const Hello = appComponent((props) => {
+const Hello = withApp((props) => {
     const t1 = `Hello! Welcome to my portfolio terminal.
 
 This is not your typical website - it's designed to resemble a command line interface, where you can navigate through my projects and learn more about me using commands.
@@ -75,9 +75,6 @@ Let's start from about section`;
             </div>
         </AutoInput>
     );
-});
+}, "hello");
 
-export default {
-    name: "hello",
-    run: Hello,
-};
+export default Hello;

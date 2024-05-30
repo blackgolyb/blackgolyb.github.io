@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
-import { appComponent } from "components/Terminal/Utils";
+import { withApp } from "components/Terminal/Utils";
 
-const Experience = appComponent((props) => {
+const Experience = withApp((props) => {
     const { exit } = props.context.terminal;
 
     useEffect(() => {
@@ -10,9 +10,6 @@ const Experience = appComponent((props) => {
     }, []);
 
     return <div>Experience</div>;
-});
+}, "experience");
 
-export default {
-    name: "experience",
-    run: Experience,
-};
+export default Experience;

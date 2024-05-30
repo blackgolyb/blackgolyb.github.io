@@ -1,18 +1,15 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
-import { appComponent } from "components/Terminal/Utils";
+import { withApp } from "components/Terminal/Utils";
 
-const Projects = appComponent((props) => {
+const Projects = withApp((props) => {
     const { exit } = props.context.terminal;
-    
+
     useEffect(() => {
         exit();
     }, []);
 
     return <div>Projects</div>;
-});
+}, "projects");
 
-export default {
-    name: "projects",
-    run: Projects,
-};
+export default Projects;
