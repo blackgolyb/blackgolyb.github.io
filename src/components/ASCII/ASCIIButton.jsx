@@ -1,36 +1,28 @@
 import { forwardRef } from "react";
 
-import { Str, PriorityScope } from "src/components/AutoInput/AutoInput";
+import { Str } from "src/components/AutoInput/AutoInput";
+import { ASCIIWrapper } from "./ASCIIUtils";
 
-import ASCIIWrapper from "./ASCIIWrapper/ASCIIWrapper";
-import { BottomBorder, TopBorder } from "./ASCIIUtils";
+const ASCIIButton = forwardRef(
+	({ borderConfig, className, children, ...rest }, ref) => {
+		const onClick = (e) => {
+			e.stopPropagation();
+			rest.onClick?.(e);
+		};
 
-const ASCIIButton = forwardRef((props, ref) => {
-    const onClick = (e) => {
-        console.log("onClick");
-        e.stopPropagation();
-        props.onClick?.(e);
-    };
-
-    return (
-        <PriorityScope>
-            <ASCIIWrapper
-                border={
-                    <>
-                        <TopBorder />
-                        <BottomBorder />
-                    </>
-                }
-                className={props.className + " hover:cursor-pointer focus:cursor-pointer"}
-                onClick={onClick}
-            >
-                <button ref={ref} {...props} className={""}>
-                    <Str localePriority={2}>{props.children}</Str>
-                </button>
-            </ASCIIWrapper>
-        </PriorityScope>
-    );
-});
+		return (
+			<ASCIIWrapper
+				className={`${className} hover:cursor-pointer focus:cursor-pointer`}
+				borderConfig={borderConfig}
+				onClick={onClick}
+			>
+				<button ref={ref} {...rest} className={""}>
+					<Str localePriority={2}>{children}</Str>
+				</button>
+			</ASCIIWrapper>
+		);
+	},
+);
 
 ASCIIButton.displayName = "ASCIIButton";
 
