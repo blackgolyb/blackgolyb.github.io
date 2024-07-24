@@ -1,22 +1,41 @@
 import { ASCIIWrapper as RawASCIIWrapper } from "ascii-wrapper";
-import { PriorityScope } from "src/components/AutoInput/AutoInput";
-import { Str } from "src/components/AutoInput/AutoInput";
+import { Scope } from "src/components/AnimationFlow/AnimationFlow";
+import { Str } from "src/components/AnimationFlow/AnimationFlow";
+import styles from "./ASCIIUtils.module.css";
 
-export const TopBorder = ({ priority = 1 }) => {
+export const TopBorder = ({ priority = 3 }) => {
 	const { ASCIIBorders } = RawASCIIWrapper.useContext();
 
-	return <Str localePriority={priority}>{ASCIIBorders[0]}</Str>;
+	return (
+		<Str
+			className={styles["str"]}
+			interval={5}
+			randomRange={[-1, 1]}
+			localePriority={priority}
+		>
+			{ASCIIBorders[0]}
+		</Str>
+	);
 };
 
-export const BottomBorder = ({ priority = 3 }) => {
+export const BottomBorder = ({ priority = 1 }) => {
 	const { ASCIIBorders } = RawASCIIWrapper.useContext();
 
-	return <Str localePriority={priority}>{ASCIIBorders[1]}</Str>;
+	return (
+		<Str
+			className={styles["str"]}
+			interval={5}
+			randomRange={[-1, 1]}
+			localePriority={priority}
+		>
+			{ASCIIBorders[1]}
+		</Str>
+	);
 };
 
 export const ASCIIWrapper = ({ children, ...rest }) => {
 	return (
-		<PriorityScope>
+		<Scope>
 			<RawASCIIWrapper
 				border={
 					<>
@@ -28,6 +47,6 @@ export const ASCIIWrapper = ({ children, ...rest }) => {
 			>
 				{children}
 			</RawASCIIWrapper>
-		</PriorityScope>
+		</Scope>
 	);
 };

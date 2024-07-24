@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { Str } from "src/components/AutoInput/AutoInput";
+import { Str } from "src/components/AnimationFlow/AnimationFlow";
 import { ASCIIWrapper } from "./ASCIIUtils";
 
 const ASCIIButton = forwardRef(
