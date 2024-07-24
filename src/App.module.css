@@ -16,14 +16,6 @@ body {
   position: relative;
 }
 
-.header-nav {
-  width: 60%;
-  display: flex;
-  flex-direction: row;
-  align-self: center;
-  justify-content: space-between;
-}
-
 .terminal {
   min-height: calc(100vh - var(--header-height));
   max-height: max-content;
