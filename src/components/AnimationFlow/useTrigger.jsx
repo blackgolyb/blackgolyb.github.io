@@ -17,9 +17,5 @@ export const useTrigger = () => {
 		});
 	}, []);
 
-	const check = useCallback((value) => {
-		return checkTrigger(value);
-	}, []);
-
-	return [trigger, update, check];
+	return [trigger, update, checkTrigger];
 };

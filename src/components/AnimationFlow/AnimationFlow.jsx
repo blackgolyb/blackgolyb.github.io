@@ -13,7 +13,7 @@ import {
 import { config } from "core";
 import { makeAutoInput } from "src/utils/autoInput";
 import { debounce } from "src/utils/utils";
-import { useTrigger } from "./useTrigger";
+import { useTrigger, checkTrigger } from "./useTrigger";
 
 const { defaultInterval, defaultRandomRange } = config;
 
@@ -225,19 +225,52 @@ const getPriorityQueue = (elems) => {
 		return sortElementsInScope(tree);
 	};
 
-	const plainTree = (tree) => {
-		const list = [];
+	const propagatePriority = (tree) => {
 		for (const node of tree) {
-			list.push(node);
-			if (!("children" in node && node.children !== undefined)) continue;
-			list.push(...plainTree(node.children));
+			if (node.priority === 0) continue;
+			if (!hasAttribute(node, "children")) continue;
+			for (const child of node.children) {
+				child.priority = node.priority;
+			}
+			propagatePriority(node.children);
 		}
-		return list;
 	};
 
-	const groupedByParent = Object.groupBy(elems, ({ parent }) => parent);
+	const hasAttribute = (obj, attribute) =>
+		attribute in obj && obj[attribute] !== undefined;
 
-	return plainTree(construct(0, groupedByParent));
+	const margePriorityTree = (tree1, tree2) => {
+		const res = { ...tree2, ...tree1 };
+		for (const priority of Object.keys(tree2)) {
+			if (!(priority in tree1)) continue;
+			res[priority] = [...tree1[priority], ...tree2[priority]];
+		}
+		return res;
+	};
+
+	const plainTreeByPriority = (tree) => {
+		let res = {};
+		for (const node of tree) {
+			if (!(node.priority in res)) res[node.priority] = [];
+			res[node.priority].push(node);
+			if (!hasAttribute(node, "children")) continue;
+			res = margePriorityTree(res, plainTreeByPriority(node.children));
+		}
+		return res;
+	};
+
+	const plainTree = (tree) => {
+		const groupedByParent = plainTreeByPriority(tree);
+		return Object.entries(groupedByParent)
+			.toSorted((a, b) => b[0] - a[0])
+			.flatMap(([_, nodes]) => nodes);
+	};
+
+	const groupByParent = (x) => Object.groupBy(x, ({ parent }) => parent);
+
+	const tree = construct(0, groupByParent(elems));
+	propagatePriority(tree);
+	return plainTree(tree);
 };
 
 export const AnimationFlow = ({
@@ -248,7 +281,7 @@ export const AnimationFlow = ({
 }) => {
 	const [nodes, setNodes] = useState([]);
 	const [isPlayed, setIsPlayed] = useState(false);
-	const [innerTrigger, updateTrigger, checkTrigger] = useTrigger();
+	const [innerTrigger, updateInnerTrigger] = useTrigger();
 
 	const animate = useCallback(
 		debounce((nodes, callback) => {
@@ -285,8 +318,12 @@ export const AnimationFlow = ({
 
 	useLayoutEffect(() => {
 		nodes;
-		updateTrigger(trigger);
-	}, [trigger, nodes, updateTrigger]);
+		let t = trigger;
+		if (typeof trigger !== "boolean") {
+			t = checkTrigger(t);
+		}
+		updateInnerTrigger(t);
+	}, [trigger, nodes, updateInnerTrigger]);
 
 	/*
 	biome-ignore lint/correctness/useExhaustiveDependencies:
@@ -304,7 +341,7 @@ export const AnimationFlow = ({
 		return () => {
 			setNodes([]);
 		};
-	}, [animate, callback, updateOnChange, isPlayed, innerTrigger, checkTrigger]);
+	}, [animate, callback, updateOnChange, isPlayed, innerTrigger]);
 
 	const params = useMemo(() => ({ addNode }), [addNode]);
 
