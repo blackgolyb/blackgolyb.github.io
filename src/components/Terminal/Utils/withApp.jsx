@@ -1,10 +1,9 @@
+/**
+ * @param Component [Required]
+ * @param name [Required]
+ * @param description
+ */
 const withApp = (Component, name, description) => {
-    /**
-     * @param Component [Required]
-     * @param name [Required]
-     * @param description
-     */
-    
     const run = (args, context) => {
         return <Component args={args} context={context} />;
     };
