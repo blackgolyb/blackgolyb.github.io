@@ -39,16 +39,6 @@
     background-color: #2c2c2c;
 }
 
-.button-section {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.button-section .form-button {
-    width: 50%;
-}
-
 .form-input {
     height: 100px;
 }

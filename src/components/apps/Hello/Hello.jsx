@@ -1,4 +1,4 @@
-import { AnimationFlow, Str } from "components/AnimationFlow";
+import { AnimationFlow, AutoStr as Str } from "components/AnimationFlow";
 import { withApp } from "components/Terminal/Utils";
 
 import style from "./Hello.module.css";
@@ -43,7 +43,7 @@ const Hello = withApp((props) => {
 	};
 
 	return (
-		<AnimationFlow callback={onAnimationFinish}>
+		<AnimationFlow endCallback={onAnimationFinish}>
 			<div className={style["hello"]}>
 				<p>
 					<Str>{t1}</Str>

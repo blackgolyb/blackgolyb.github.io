@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { ASCIIButton, ASCIIInput, ASCIITextArea } from "components/ASCII";
 import { sendEmail } from "services/email/email";
-import { AnimationFlow, Scope, Sleep, Str } from "components/AnimationFlow";
+import { AnimationFlow, AutoStr as Str } from "components/AnimationFlow";
 
 import { withApp } from "components/Terminal/Utils";
 
@@ -36,11 +36,6 @@ const Contact = withApp((props) => {
 		);
 	};
 
-	const cancelForm = (e) => {
-		e.preventDefault();
-		exit();
-	};
-
 	const sendForm = (e) => {
 		e.preventDefault();
 		sendFormEmail();
@@ -48,7 +43,7 @@ const Contact = withApp((props) => {
 	};
 
 	return (
-		<AnimationFlow>
+		<AnimationFlow endCallback={exit}>
 			<div className={styles["contact"]}>
 				<section className={styles["header"]}>
 					<Str localePriority={10} interval={5} randomRange={[-1, 1]}>
@@ -82,14 +77,9 @@ const Contact = withApp((props) => {
 							corners: ["+", "+", "@", "+"],
 						}}
 					/>
-					<section className={styles["button-section"]}>
-						<ASCIIButton className={styles["form-button"]} onClick={cancelForm}>
-							Cancel
-						</ASCIIButton>
-						<ASCIIButton className={styles["form-button"]} onClick={sendForm}>
-							Submit
-						</ASCIIButton>
-					</section>
+					<ASCIIButton className={styles["form-button"]} onClick={sendForm}>
+						Submit
+					</ASCIIButton>
 				</form>
 			</div>
 		</AnimationFlow>

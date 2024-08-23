@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { Str } from "src/components/AnimationFlow/AnimationFlow";
+import { AutoStr } from "src/components/AnimationFlow";
 import { ASCIIWrapper } from "./ASCIIUtils";
 
 const ASCIIButton = forwardRef(
@@ -17,7 +17,7 @@ const ASCIIButton = forwardRef(
 				onClick={onClick}
 			>
 				<button ref={ref} {...rest} className={""}>
-					<Str localePriority={2}>{children}</Str>
+					<AutoStr localePriority={2}>{children}</AutoStr>
 				</button>
 			</ASCIIWrapper>
 		);

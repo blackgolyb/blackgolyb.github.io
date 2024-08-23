@@ -1,20 +1,24 @@
 import { ASCIIWrapper as RawASCIIWrapper } from "ascii-wrapper";
-import { Scope } from "src/components/AnimationFlow/AnimationFlow";
-import { Str } from "src/components/AnimationFlow/AnimationFlow";
+import {
+	Scope,
+	AutoStr,
+	Callback,
+} from "src/components/AnimationFlow";
 import styles from "./ASCIIUtils.module.css";
+import { useCallback, useState } from "react";
 
 export const TopBorder = ({ priority = 3 }) => {
 	const { ASCIIBorders } = RawASCIIWrapper.useContext();
 
 	return (
-		<Str
+		<AutoStr
 			className={styles["str"]}
 			interval={5}
 			randomRange={[-1, 1]}
 			localePriority={priority}
 		>
 			{ASCIIBorders[0]}
-		</Str>
+		</AutoStr>
 	);
 };
 
@@ -22,18 +26,20 @@ export const BottomBorder = ({ priority = 1 }) => {
 	const { ASCIIBorders } = RawASCIIWrapper.useContext();
 
 	return (
-		<Str
+		<AutoStr
 			className={styles["str"]}
 			interval={5}
 			randomRange={[-1, 1]}
 			localePriority={priority}
 		>
 			{ASCIIBorders[1]}
-		</Str>
+		</AutoStr>
 	);
 };
 
 export const ASCIIWrapper = ({ children, ...rest }) => {
+	const [isAnimating, setIsAnimating] = useState(true);
+
 	return (
 		<Scope>
 			<RawASCIIWrapper
@@ -43,10 +49,15 @@ export const ASCIIWrapper = ({ children, ...rest }) => {
 						<BottomBorder />
 					</>
 				}
+				bordersClassName={isAnimating ? styles["borders-animated"] : ""}
 				{...rest}
 			>
 				{children}
 			</RawASCIIWrapper>
+			<Callback
+				localePriority={-1}
+				callback={useCallback(() => setIsAnimating(false), [])}
+			/>
 		</Scope>
 	);
 };

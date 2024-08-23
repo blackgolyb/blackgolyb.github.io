@@ -1,4 +1,8 @@
 .str {
-	line-height: inherit;
 	font: inherit;
+}
+
+.borders-animated {
+	top: 0.5lh !important;
+	transform: translateX(-50%) !important;
 }
