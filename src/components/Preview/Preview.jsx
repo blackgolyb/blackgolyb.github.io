@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import cn from "classnames";
+import cn from "clsx";
 import { AnimationFlow, AutoStr } from "../AnimationFlow";
 
 import styles from "./Preview.module.css";

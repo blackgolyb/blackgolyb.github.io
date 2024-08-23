@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import classNames from "classnames";
+import classNames from "clsx";
 
 import styles from "./Header.module.css";
 import MatrixCanvas from "../MatrixCanvas/MatrixCanvas";

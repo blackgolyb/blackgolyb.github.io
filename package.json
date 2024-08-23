@@ -15,22 +15,22 @@
     },
     "dependencies": {
         "@emailjs/browser": "^4.4.1",
-        "ascii-wrapper": "^0.2.0",
-        "classnames": "^2.5.1",
+        "ascii-wrapper": "^0.3.0",
+        "clsx": "^2.1.1",
         "figlet": "^1.6.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
     },
     "devDependencies": {
         "@biomejs/biome": "1.8.3",
-        "@types/react": "^18.2.15",
+        "@types/react": "^18.3.4",
         "@types/react-dom": "^18.2.7",
         "@vitejs/plugin-react-swc": "^3.3.2",
-        "autoprefixer": "^10.4.19",
+        "autoprefixer": "^10.4.20",
         "gh-pages": "^6.0.0",
-        "postcss": "^8.4.38",
-        "tailwindcss": "^3.4.3",
-        "vite": "^5.3.4",
-        "vitest": "^2.0.4"
+        "postcss": "^8.4.41",
+        "tailwindcss": "^3.4.10",
+        "vite": "^5.4.2",
+        "vitest": "^2.0.5"
     }
 }

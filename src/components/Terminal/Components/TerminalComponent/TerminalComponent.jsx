@@ -5,7 +5,7 @@ import {
 	useEffect,
 	memo,
 } from "react";
-import cn from "classnames";
+import cn from "clsx";
 
 import { getRndInteger } from "utils/utils";
 import { useTerminalContext } from "../../Context/TerminalContext";
