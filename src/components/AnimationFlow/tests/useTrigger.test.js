@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { updateTrigger, checkTrigger } from "./useTrigger";
+import { updateTrigger, checkTrigger } from "../hooks/useTrigger";
 
 const testCasesUpdateTrigger = [
 	{ input: [0, false], expected: 1 },
