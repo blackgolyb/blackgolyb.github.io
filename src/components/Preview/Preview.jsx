@@ -1,38 +1,30 @@
-import React, { useState, useLayoutEffect } from "react";
+import React, { useState } from "react";
 import classNames from "classnames";
-
-import { makeAutoInput } from "utils/autoInput";
+import { AnimationFlow, AutoStr } from "../AnimationFlow";
 
 import styles from "./Preview.module.css";
 
 const Preview = ({ animationTime }) => {
-    const congratulations = "Hello, World!";
-    const [text, setText] = useState("");
-    const [isLoaded, setIsLoaded] = useState(false);
+	const congratulations = "Hello, World!";
+	const [isLoaded, setIsLoaded] = useState(false);
+	const timePerLetter = animationTime / congratulations.length;
 
-    const previewClass = classNames(styles["preview-container"], {
-        [styles["loaded"]]: isLoaded,
-    });
+	const previewClass = classNames(styles["preview-container"], {
+		[styles["loaded"]]: isLoaded,
+	});
 
-    useLayoutEffect(() => {
-        const printingAnimationTime = animationTime / 2.5;
-        const timePerLetter = printingAnimationTime / congratulations.length;
-        const autoInput = makeAutoInput(timePerLetter);
-
-        setTimeout(() => {
-            autoInput(congratulations, setText);
-        }, animationTime/4);
-        setTimeout(() => {
-            setIsLoaded(true);
-        }, animationTime);
-    }, []);
-
-    return (
-        <div className={previewClass}>
-            <h2 className={styles["preview"]}>{text}</h2>
-            <div className={styles["cursor"]}></div>
-        </div>
-    );
+	return (
+		<AnimationFlow endCallback={() => setIsLoaded(true)}>
+			<div className={previewClass}>
+				<h2>
+					<AutoStr className={styles["preview"]} interval={timePerLetter}>
+						{congratulations}
+					</AutoStr>
+				</h2>
+				<div className={styles["cursor"]} />
+			</div>
+		</AnimationFlow>
+	);
 };
 
 export default Preview;
