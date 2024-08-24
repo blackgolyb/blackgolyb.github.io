@@ -1,7 +1,7 @@
 const config = {
-    introTime: 8000,
-    defaultInterval: 20,
-    defaultRandomRange: [-10, 10],
+    introTime: 7000,
+    defaultInterval: 15,
+    defaultRandomRange: [-5, 5],
 };
 
 export default config;
