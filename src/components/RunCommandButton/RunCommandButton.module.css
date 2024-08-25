@@ -3,9 +3,16 @@
     border: none;
 }
 
-.button:hover .button::after {
+.button::after {
     width: 100%;
     height: 1px;
-    cursor: pointer;
+    content: "";
     background-color: #fff;
+    visibility: hidden;
+    display: block;
+    cursor: pointer;
+}
+
+.button:hover::after {
+    visibility: visible;
 }

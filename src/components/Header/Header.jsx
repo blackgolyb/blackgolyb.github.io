@@ -1,12 +1,31 @@
 import React, { useEffect, useState } from "react";
-import classNames from "clsx";
+import cn from "clsx";
 
 import styles from "./Header.module.css";
 import MatrixCanvas from "../MatrixCanvas/MatrixCanvas";
 import RunCommandButton from "components/RunCommandButton/RunCommandButton";
 
+const MenuIcon = ({ open, setOpen }) => {
+	return (
+		<div
+			className={cn(styles["icon"], { [styles["active"]]: open })}
+			onClick={setOpen}
+		>
+			<span />
+			<span />
+			<span />
+		</div>
+	);
+};
+
 const Header = ({ emulateCommand, headerResizeDelay = 1000 }) => {
 	const [isLoaded, setIsLoaded] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
+
+	const wrappedEmulateCommand = (...args) => {
+		setIsOpen(false);
+		return emulateCommand(...args)
+	}
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -14,9 +33,12 @@ const Header = ({ emulateCommand, headerResizeDelay = 1000 }) => {
 		}, headerResizeDelay);
 	}, [headerResizeDelay]);
 
-	const headerClass = classNames(styles["header"], {
+	const headerClass = cn(styles["header"], {
 		[styles["loaded"]]: isLoaded,
+		[styles["open"]]: isOpen,
 	});
+
+	const toggleBurger = () => setIsOpen(!isOpen);
 
 	return (
 		<header className={headerClass}>
@@ -24,29 +46,36 @@ const Header = ({ emulateCommand, headerResizeDelay = 1000 }) => {
 			<MatrixCanvas
 				className={styles["matrix-bg"]}
 				bgColor={{ R: 6, G: 9, B: 24 }}
-				// bgColor={{ R: 100, G: 100, B: 100 }}
 			/>
 			<div className={styles["header-content"]}>
+				<div className={styles["button-container"]}>
+					<MenuIcon open={isOpen} setOpen={toggleBurger} />
+				</div>
 				<nav className={styles["header-nav"]}>
 					<RunCommandButton
 						command="about"
 						text="About"
-						emulateCommand={emulateCommand}
+						emulateCommand={wrappedEmulateCommand}
 					/>
 					<RunCommandButton
 						command="experience"
 						text="Experience"
-						emulateCommand={emulateCommand}
+						emulateCommand={wrappedEmulateCommand}
 					/>
 					<RunCommandButton
 						command="projects"
 						text="Projects"
-						emulateCommand={emulateCommand}
+						emulateCommand={wrappedEmulateCommand}
 					/>
 					<RunCommandButton
 						command="contact"
 						text="Contact"
-						emulateCommand={emulateCommand}
+						emulateCommand={wrappedEmulateCommand}
+					/>
+					<RunCommandButton
+						command="cv"
+						text="CV"
+						emulateCommand={wrappedEmulateCommand}
 					/>
 				</nav>
 			</div>

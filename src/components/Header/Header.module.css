@@ -4,7 +4,7 @@
 
     position: fixed;
     width: 100%;
-    height: 100vh;
+    height: 100dvh;
 
     z-index: 100;
 
@@ -28,6 +28,7 @@
     display: flex;
     justify-content: center;
     align-self: center;
+    flex-direction: column;
 }
 
 .header-nav {
@@ -36,7 +37,7 @@
     flex-direction: row;
     align-self: center;
     justify-content: space-between;
-  }
+}
 
 .matrix-bg {
     position: absolute;
@@ -63,6 +64,10 @@
     background: radial-gradient(#060918aa, #06091844);
 }
 
+.header.open {
+    height: 100dvh;
+}
+
 /* 
 .matrix-bg::after {
     width: 100%;
@@ -73,3 +78,89 @@
 
     background: radial-gradient(#ffffff44 100%, #ffffffff 0);
 } */
+
+.button-container {
+    display: none;
+    position: absolute;
+    right: 30px;
+    top: calc(var(--header-height) / 2);
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 992px) {
+    .header-nav {
+        width: 75%;
+    }
+}
+
+@media (max-width: 768px) {
+    .button-container {
+        display: block;
+    }
+
+    .header-content {
+        overflow: hidden;
+    }
+    .header.open .header-nav {
+        display: flex;
+    }
+    .header-nav {
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+        width: max-content;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+}
+
+
+:root {
+    --icon-color: #ffffff; /* Replace with your actual variable value */
+}
+
+.icon {
+    display: inline-block;
+    cursor: pointer;
+    transition:
+        0.2s transform ease-in-out,
+        0.2s width ease-in-out;
+}
+
+.icon > span {
+    display: block;
+    width: 28px;
+    height: 2px;
+    border-radius: 9999px;
+    background-color: var(--icon-color);
+    transition:
+        0.2s transform ease-in-out,
+        0.2s width ease-in-out;
+}
+
+.icon > span:not(:last-child) {
+    margin-bottom: 7px;
+}
+
+.icon.active {
+    transition-delay: 0.2s;
+    transform: rotate(45deg);
+}
+
+.icon.active > span:nth-child(2) {
+    width: 0;
+}
+
+.icon.active > span:nth-child(1),
+.icon.active > span:nth-child(3) {
+    transition-delay: 0.2s;
+    height: 2.8px;
+}
+
+.icon.active > span:nth-child(1) {
+    transform: translateY(9px);
+}
+
+.icon.active > span:nth-child(3) {
+    transform: translateY(-9px) rotate(90deg);
+}
