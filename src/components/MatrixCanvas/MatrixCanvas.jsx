@@ -3,6 +3,7 @@ import cn from "clsx";
 import { getRndInteger } from "utils/utils";
 
 import styles from "./MatrixCanvas.module.css";
+import { debounce } from "src/utils/debounce";
 
 const katakana =
 	"\
@@ -30,6 +31,7 @@ const MatrixCanvas = (props) => {
 	const drops = [];
 	const speeds = [];
 	const delay = props.delay || 20;
+	const debounceDelay = props.debounceDelay || 300;
 	const font_size = props.fontSize || 12;
 	const bgColor = props.bgColor || { R: 0, G: 0, B: 0 };
 	const preColumnRepeat = props.preColumnRepeat || 4;
@@ -114,8 +116,16 @@ const MatrixCanvas = (props) => {
 			reset.interval = setInterval(() => draw(), delay);
 		}
 
+		reset();
+		const r = debounce(() => reset(), debounceDelay);
+
+		let alreadyResized = false;
+		setTimeout(() => {
+			alreadyResized = true;
+		}, delay);
+
 		const resizeObserver = new ResizeObserver((entries, observer) => {
-			reset();
+			if (alreadyResized) r();
 		});
 
 		resizeObserver.observe(canvasRef.current);
