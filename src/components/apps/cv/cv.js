@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 
 import { withApp } from "components/Terminal/Utils";
+import { useTerminal } from "components/Terminal";
+import { useData } from "services/data";
 
-const url =
-	"https://github.com/blackgolyb/cv/releases/latest/download/Omelnitskyi_Andrii_CV.pdf";
-
-const cv = withApp((props) => {
-	const { exit } = props.context.terminal;
+const cv = withApp(() => {
+	const url = useData((store) => store.cvLink);
+	const { exit } = useTerminal();
 
 	useEffect(() => {
 		window.location.href = url;
