@@ -87,6 +87,10 @@
     transform: translate(-50%, -50%);
 }
 
+.header.open .button-container{
+    display: block;
+}
+
 @media (max-width: 992px) {
     .header-nav {
         width: 75%;
