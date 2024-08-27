@@ -84,8 +84,11 @@ const MatrixCanvas = (props) => {
 
 			iteration = (iteration + 1) % (2 * 3 * 4 * 5);
 		}
-
+		
+		let alreadyResized = false;
 		function reset(repeats = null) {
+			alreadyResized = false;
+
 			if (reset.interval) {
 				clearInterval(reset.interval);
 			}
@@ -114,15 +117,13 @@ const MatrixCanvas = (props) => {
 			ctx.fillRect(0, 0, c.width, c.height);
 
 			reset.interval = setInterval(() => draw(), delay);
+			setTimeout(() => {
+				alreadyResized = true;
+			}, delay);
 		}
 
 		reset();
 		const r = debounce(() => reset(), debounceDelay);
-
-		let alreadyResized = false;
-		setTimeout(() => {
-			alreadyResized = true;
-		}, delay);
 
 		const resizeObserver = new ResizeObserver((entries, observer) => {
 			if (alreadyResized) r();
