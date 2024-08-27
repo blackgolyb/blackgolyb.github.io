@@ -2,14 +2,17 @@ import { useEffect } from "react";
 
 import { withApp } from "components/Terminal/Utils";
 import { useTerminal } from "components/Terminal";
-import { useData } from "services/data";
+import { loadData } from "services/data";
 
 const cv = withApp(() => {
-	const url = useData((store) => store.cvLink);
 	const { exit } = useTerminal();
 
 	useEffect(() => {
-		window.location.href = url;
+		const redirect = async () => {
+			const url = await loadData((store) => store.cvLink);
+			window.location.href = url;
+		};
+		redirect();
 		exit();
 	}, []);
 

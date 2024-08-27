@@ -4,7 +4,7 @@ import DefaultMarkdown from "react-markdown";
 import { AnimationFlow } from "components/AnimationFlow";
 import { withApp } from "components/Terminal/Utils";
 import { useTerminal } from "components/Terminal";
-import { useData } from "services/data";
+import { loadData } from "services/data";
 import { remarkButton, rehypeButton } from "components/Markdown/plugins";
 import { createMappedComponents } from "components/Markdown";
 import {
@@ -13,6 +13,7 @@ import {
 } from "components/EmulateASCIIButton/EmulateASCIIButton";
 import { EmulateButton } from "components/EmulateButton/EmulateButton";
 import "./MDApp.css";
+import { useEffect, useState } from "react";
 
 const buttons = {
 	n: EmulateASCIIButtonWithText("Next"),
@@ -21,11 +22,17 @@ const buttons = {
 };
 
 export const MDApp = (markdown, name) => {
-	const store = useData((store) => store);
-	const content = Mustache.render(markdown, store);
-
 	return withApp(() => {
+		const [content, setContent] = useState(undefined);
 		const { exit } = useTerminal();
+
+		useEffect(() => {
+			const load = async () => {
+				const store = await loadData((store) => store);
+				setContent(Mustache.render(markdown, store));
+			};
+			load();
+		}, [markdown]);
 
 		return (
 			<AnimationFlow endCallback={exit}>
