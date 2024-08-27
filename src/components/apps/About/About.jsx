@@ -1,36 +1,28 @@
-import { ASCIIButton } from "components/ASCII";
+import { MDApp } from "src/components/MDApp/MDApp";
 
-import { AnimationFlow, AutoStr as Str } from "components/AnimationFlow";
-import { withApp } from "components/Terminal/Utils";
+import "./About.css";
 
-import styles from "./About.module.css";
+const About = MDApp(
+	`
+![avatar {avatar}]({{photo}})
 
-const About = withApp((props) => {
-	const text = "Test text for test";
-	const { exit, emulateCommand } = props.context.terminal;
+Hi, I'm {{lastName}} {{firstName}}, a {{age}} y.o. passionate {{position}} based in {{city}}.
+With a strong foundation in backend development, I have experience building scalable
+and efficient applications using modern technologies like Python, FastAPI, and SQLAlchemy.
+My background in applied mathematics and computer engineering drives my interest
+in solving complex problems and creating impactful software solutions.
+I am always eager to learn and explore new technologies to enhance my skills and deliver top-notch projects.
+Outside of coding, I enjoy experimenting with different tech stacks and contributing to open-source projects.
 
-	return (
-		<AnimationFlow endCallback={exit}>
-			<div>
-				<img
-					src="https://avatars.githubusercontent.com/u/61083295?v=4"
-					alt="avatar"
-					className={styles["avatar"]}
-				/>
-				<span>
-					<Str>{text}</Str>
-				</span>
-			</div>
-			<ASCIIButton
-				onClick={() => {
-					emulateCommand("experience");
-				}}
-				className={styles["next-btn"]}
-			>
-				Next
-			</ASCIIButton>
-		</AnimationFlow>
-	);
-}, "about");
+Let's connect and build something amazing together!
+
+Here is my (e~> CV ("cv")) if you with to see it in formal view.
+Its also build with interesting features and all automated with CI/CD
+
+Next let's see my experience:
+(n~> ("experience"))
+	`,
+	"about",
+);
 
 export default About;
