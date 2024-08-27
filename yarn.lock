@@ -691,10 +691,10 @@ array-uniq@^1.0.1:
   resolved "https://registry.yarnpkg.com/array-uniq/-/array-uniq-1.0.3.tgz#af6ac877a25cc7f74e058894753858dfdb24fdb6"
   integrity sha512-MNha4BWQ6JbwhFhj03YK552f7cb3AzoE8SzeljgChvL1dl3IcvggXVz1DilzySZkCja+CXuZbdW7yATchWn8/Q==
 
-ascii-wrapper@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/ascii-wrapper/-/ascii-wrapper-0.3.0.tgz#81e25032bcbc44e9f897df680c82af060b8054a6"
-  integrity sha512-HNT4pnYWHm4R76Rq6lymnPX04l2QpQYKUT4wmNbMrEwGQ3377XSHnFAL95PmcEtEL+r/trfE5RUshlO9a1I3eg==
+ascii-wrapper@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ascii-wrapper/-/ascii-wrapper-1.0.0.tgz#f5c6bb5976b7e19959c82802c67c3d4a1dd03d2f"
+  integrity sha512-VC1etRUx6qMFXHavREivz+vEC2a3AkDUrsyj22PxK8TO7v8hU0OIpXrdOmPRrSnIZBH2dGFyMMymCBbJrWBFGQ==
 
 assertion-error@^2.0.1:
   version "2.0.1"
