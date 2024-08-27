@@ -53,7 +53,7 @@ const TerminalComponent = forwardRef(({ apps, className }, ref) => {
 			};
 		}
 
-		return { result: app(command.args, context), statusCode: 0 };
+		return { result: <div>{app(command.args, context)}</div>, statusCode: 0 };
 	};
 
 	const runCommand = (commandText) => {
