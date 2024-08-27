@@ -1,0 +1,7 @@
+* + .md-p {
+    margin-top: 1rem;
+}
+
+.md-p:first-child {
+    margin-top: 0 !important;
+}

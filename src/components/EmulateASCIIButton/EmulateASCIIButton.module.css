@@ -1,0 +1,9 @@
+.next-btn {
+    width: 200px;
+    height: 100px;
+}
+
+.next-btn:hover,
+.next-btn:focus {
+    background-color: #2c2c2c;
+}
