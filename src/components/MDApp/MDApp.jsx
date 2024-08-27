@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import Mustache from "mustache";
 import DefaultMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 
-import { AnimationFlow } from "components/AnimationFlow";
+import { AnimationFlow, AutoStr } from "components/AnimationFlow";
 import { withApp } from "components/Terminal/Utils";
 import { useTerminal } from "components/Terminal";
 import { loadData } from "services/data";
@@ -12,13 +14,17 @@ import {
 	EmulateASCIIButtonWithText,
 } from "components/EmulateASCIIButton/EmulateASCIIButton";
 import { EmulateButton } from "components/EmulateButton/EmulateButton";
+
 import "./MDApp.css";
-import { useEffect, useState } from "react";
 
 const buttons = {
 	n: EmulateASCIIButtonWithText("Next"),
 	a: EmulateASCIIButton,
 	e: EmulateButton,
+};
+
+const wrappedComponents = {
+    string: AutoStr,
 };
 
 export const MDApp = (markdown, name) => {
@@ -38,8 +44,8 @@ export const MDApp = (markdown, name) => {
 			<AnimationFlow endCallback={exit}>
 				<DefaultMarkdown
 					remarkPlugins={[remarkButton]}
-					rehypePlugins={[rehypeButton]}
-					components={createMappedComponents({ buttons })}
+					rehypePlugins={[rehypeRaw, rehypeButton]}
+					components={createMappedComponents({ buttons, wrappedComponents })}
 				>
 					{content}
 				</DefaultMarkdown>
