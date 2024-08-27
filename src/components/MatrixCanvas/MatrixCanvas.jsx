@@ -26,21 +26,22 @@ QWERTYUIOPASDFGHJKLZXCVBNM\
 <>?:[]/|\\1234567890-=!@#$%^&*()_+`~";
 
 const MatrixCanvas = (props) => {
-    const canvasRef = useRef(null);
+	const canvasRef = useRef(null);
 	const drops = [];
 	const speeds = [];
 	const delay = props.delay || 20;
 	const font_size = props.fontSize || 12;
 	const bgColor = props.bgColor || { R: 0, G: 0, B: 0 };
 	const preColumnRepeat = props.preColumnRepeat || 4;
-    const alphabet = katakana.split("");
+	const alphabet = katakana.split("");
 	const newLineCoef = 0.975;
 
 	useLayoutEffect(() => {
-        let iteration = 0;
-        
+		let iteration = 0;
+		const { R, G, B } = bgColor;
+
 		//drawing the characters
-		function draw(isRandom = true) {
+		function draw() {
 			//Black BG for the canvas
 			//translucent BG to show trail
 			if (!canvasRef.current) {
@@ -49,7 +50,6 @@ const MatrixCanvas = (props) => {
 			const c = canvasRef.current;
 			const columns = c.width / font_size;
 			const ctx = c.getContext("2d");
-			const { R, G, B } = bgColor;
 
 			ctx.fillStyle = `rgba(${R}, ${G}, ${B}, 0.05)`;
 			ctx.fillRect(0, 0, c.width, c.height);
@@ -83,41 +83,46 @@ const MatrixCanvas = (props) => {
 			iteration = (iteration + 1) % (2 * 3 * 4 * 5);
 		}
 
-		//making the canvas full screen
-		if (!canvasRef.current) {
-			return;
+		function reset(repeats = null) {
+			if (reset.interval) {
+				clearInterval(reset.interval);
+			}
+
+			//making the canvas full screen
+			if (!canvasRef.current) {
+				return;
+			}
+			const c = canvasRef.current;
+			c.height = window.innerHeight;
+			c.width = window.innerWidth;
+
+			const ctx = c.getContext("2d");
+			const columns = c.width / font_size; //number of columns for the rain
+			const rows = repeats ?? c.height / font_size; //number of columns for the rain
+			//an array of drops - one per column
+			//x below is the x coordinate
+			//1 = y co-ordinate of the drop(same for every drop initially)
+			for (let x = 0; x < columns * preColumnRepeat; x++) {
+				speeds[x] = 1;
+				drops[x] = 1;
+			}
+
+			for (let x = 0; x < rows; x++) draw();
+			ctx.fillStyle = `rgb(${R}, ${G}, ${B})`;
+			ctx.fillRect(0, 0, c.width, c.height);
+
+			reset.interval = setInterval(() => draw(), delay);
 		}
-		const c = canvasRef.current;
-		c.height = window.innerHeight;
-		c.width = window.innerWidth;
 
-		const ctx = c.getContext("2d");
-		const { R, G, B } = bgColor;
+		const resizeObserver = new ResizeObserver((entries, observer) => {
+			reset();
+		});
 
-		ctx.fillStyle = `rgb(${R}, ${G}, ${B})`;
-		ctx.fillRect(0, 0, c.width, c.height);
-
-		const columns = c.width / font_size; //number of columns for the rain
-		const rows = c.height / font_size; //number of columns for the rain
-		//an array of drops - one per column
-		//x below is the x coordinate
-		//1 = y co-ordinate of the drop(same for every drop initially)
-		for (let x = 0; x < columns * preColumnRepeat; x++) {
-			speeds[x] = 1;
-			drops[x] = 1;
-		}
-		for (let x = 0; x < rows; x++) draw(false);
-		ctx.fillStyle = `rgb(${R}, ${G}, ${B})`;
-		ctx.fillRect(0, 0, c.width, c.height);
-
-		setInterval(() => draw(), delay);
+		resizeObserver.observe(canvasRef.current);
 	}, []);
 
 	return (
-		<canvas
-			className={cn(styles["canvas"], props.className)}
-			ref={canvasRef}
-		/>
+		<canvas className={cn(styles["canvas"], props.className)} ref={canvasRef} />
 	);
 };
 
