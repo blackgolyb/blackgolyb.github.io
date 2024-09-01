@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { makeAutoInput } from "../utils/autoInput";
 import { useAnimate } from "../hooks";
 
+import "./styles.css";
+
 export const AutoStr = ({
 	children,
 	callback,
 	priority,
 	localePriority,
+	className = "",
 	interval = 20,
 	randomRange = [-5, 5],
 	...rest
@@ -42,5 +45,7 @@ export const AutoStr = ({
 		localePriority,
 	});
 
-	return <span ref={textRef} {...rest} />;
+	return (
+		<span className={`__autostr__ ${className}`} ref={textRef} {...rest} />
+	);
 };
