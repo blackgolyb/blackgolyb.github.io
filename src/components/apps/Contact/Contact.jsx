@@ -1,10 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ASCIIButton, ASCIIInput, ASCIITextArea } from "components/ASCII";
 import { sendEmail } from "services/email/email";
-import { AnimationFlow, AutoStr as Str } from "components/AnimationFlow";
-
+import {
+	AnimationFlow,
+	AutoStr,
+	useTrigger,
+	Scope,
+	Hide,
+} from "components/AnimationFlow";
 import { withApp } from "components/Terminal/Utils";
+import { useTerminal } from "components/Terminal";
+import { Icon } from "components/Icon";
+import { loadData } from "services/data";
 
 import styles from "./Contact.module.css";
 
@@ -15,11 +23,43 @@ const sectionTitle =
 	"| |___ | (_) || | | || |_ | (_| || (__ | |_ \n" +
 	" \\____| \\___/ |_| |_| \\__| \\__,_| \\___| \\__|\n";
 
-const Contact = withApp((props) => {
+const ContactLink = ({
+	icon,
+	link,
+	label,
+	localePriority,
+	priority,
+	...rest
+}) => {
+	return (
+		<Scope localePriority={localePriority} priority={priority}>
+			<a href={link} {...rest}>
+				<Hide>
+					<Icon size="sm" icon={icon} />
+				</Hide>
+
+				<AutoStr>{label}</AutoStr>
+			</a>
+		</Scope>
+	);
+};
+
+const Contact = withApp(() => {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [message, setMessage] = useState("");
-	const { exit } = props.context.terminal;
+	const [contacts, setContacts] = useState([]);
+	const [trigger, updateTrigger] = useTrigger();
+	const { exit } = useTerminal();
+
+	useEffect(() => {
+		const load = async () => {
+			const contacts = await loadData((store) => store.contacts);
+			setContacts(contacts);
+			updateTrigger(true);
+		};
+		load();
+	}, [updateTrigger]);
 
 	const sendFormEmail = () => {
 		sendEmail({
@@ -43,12 +83,22 @@ const Contact = withApp((props) => {
 	};
 
 	return (
-		<AnimationFlow endCallback={exit}>
+		<AnimationFlow endCallback={exit} trigger={trigger}>
 			<div className={styles["contact"]}>
 				<section className={styles["header"]}>
-					<Str localePriority={10} interval={5} randomRange={[-1, 1]}>
+					<AutoStr localePriority={10} interval={5} randomRange={[-1, 1]}>
 						{sectionTitle}
-					</Str>
+					</AutoStr>
+				</section>
+				<section className={styles["links"]}>
+					{contacts.map((contact) => (
+						<ContactLink
+							className={styles["link"]}
+							localePriority={9}
+							key={contact.label}
+							{...contact}
+						/>
+					))}
 				</section>
 				<form className={styles["form"]}>
 					<ASCIIInput
@@ -76,6 +126,7 @@ const Contact = withApp((props) => {
 						borderConfig={{
 							corners: ["+", "+", "@", "+"],
 						}}
+						speed={1}
 					/>
 					<ASCIIButton className={styles["form-button"]} onClick={sendForm}>
 						Submit
