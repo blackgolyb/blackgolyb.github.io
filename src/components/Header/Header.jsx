@@ -5,16 +5,18 @@ import styles from "./Header.module.css";
 import MatrixCanvas from "../MatrixCanvas/MatrixCanvas";
 import RunCommandButton from "components/RunCommandButton/RunCommandButton";
 
-const MenuIcon = ({ open, setOpen }) => {
+const MenuIcon = ({ open, toggle, className, ...rest }) => {
 	return (
-		<div
-			className={cn(styles["icon"], { [styles["active"]]: open })}
-			onClick={setOpen}
+		<button
+			className={cn(styles["icon"], className, { [styles["active"]]: open })}
+			onClick={toggle}
+			type="button"
+			{...rest}
 		>
 			<span />
 			<span />
 			<span />
-		</div>
+		</button>
 	);
 };
 
@@ -24,8 +26,8 @@ const Header = ({ emulateCommand, headerResizeDelay = 1000 }) => {
 
 	const wrappedEmulateCommand = (...args) => {
 		setIsOpen(false);
-		return emulateCommand(...args)
-	}
+		return emulateCommand(...args);
+	};
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -45,11 +47,12 @@ const Header = ({ emulateCommand, headerResizeDelay = 1000 }) => {
 			<div className={styles["matrix-bg-blur"]} />
 			<MatrixCanvas
 				className={styles["matrix-bg"]}
-				bgColor={{ R: 6, G: 9, B: 24 }}
+				backgroundColor="#060918"
+				color="#4f9"
 			/>
 			<div className={styles["header-content"]}>
 				<div className={styles["button-container"]}>
-					<MenuIcon open={isOpen} setOpen={toggleBurger} />
+					<MenuIcon open={isOpen} toggle={toggleBurger} />
 				</div>
 				<nav className={styles["header-nav"]}>
 					<RunCommandButton
