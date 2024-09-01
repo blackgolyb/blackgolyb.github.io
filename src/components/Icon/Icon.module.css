@@ -1,0 +1,7 @@
+.icon.show {
+    visibility: visible;
+}
+
+.icon {
+    visibility: hidden;
+}
