@@ -1,10 +1,10 @@
 import { forwardRef } from "react";
 
-import { AutoStr } from "src/components/AnimationFlow";
+import { AutoStr } from "components/AnimationFlow";
 import { ASCIIWrapper } from "./ASCIIUtils";
 
 const ASCIIButton = forwardRef(
-	({ borderConfig, className, children, ...rest }, ref) => {
+	({ borderConfig, className, children, speed, ...rest }, ref) => {
 		const onClick = (e) => {
 			e.stopPropagation();
 			rest.onClick?.(e);
@@ -15,6 +15,7 @@ const ASCIIButton = forwardRef(
 				className={`${className} hover:cursor-pointer focus:cursor-pointer`}
 				borderConfig={borderConfig}
 				onClick={onClick}
+				speed={speed}
 			>
 				<button ref={ref} {...rest} className={""}>
 					<AutoStr localePriority={2}>{children}</AutoStr>

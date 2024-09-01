@@ -2,18 +2,18 @@ import { useCallback, useState } from "react";
 import { ASCIIWrapper as RawASCIIWrapper } from "ascii-wrapper";
 import cn from "clsx";
 
-import { Scope, AutoStr, Callback } from "src/components/AnimationFlow";
+import { Scope, AutoStr, Callback, Hide } from "components/AnimationFlow";
 
 import styles from "./ASCIIUtils.module.css";
 
-export const TopBorder = ({ priority = 3 }) => {
+export const TopBorder = ({ speed = 5, priority = 3 }) => {
 	const { ASCIIBorders } = RawASCIIWrapper.useContext();
 
 	return (
 		<AutoStr
 			className={styles["str"]}
-			interval={5}
-			randomRange={[-1, 1]}
+			interval={speed}
+			randomRange={[-speed / 2, speed / 2]}
 			localePriority={priority}
 		>
 			{ASCIIBorders[0]}
@@ -21,14 +21,14 @@ export const TopBorder = ({ priority = 3 }) => {
 	);
 };
 
-export const BottomBorder = ({ priority = 1 }) => {
+export const BottomBorder = ({ speed = 5, priority = 1 }) => {
 	const { ASCIIBorders } = RawASCIIWrapper.useContext();
 
 	return (
 		<AutoStr
 			className={styles["str"]}
-			interval={5}
-			randomRange={[-1, 1]}
+			interval={speed}
+			randomRange={[-speed / 2, speed / 2]}
 			localePriority={priority}
 		>
 			{ASCIIBorders[1]}
@@ -36,40 +36,32 @@ export const BottomBorder = ({ priority = 1 }) => {
 	);
 };
 
-export const ASCIIWrapper = ({ children, ...rest }) => {
-	const [animating, setAnimating] = useState(0);
-
-	const setAnimRunning = useCallback(() => {
-		setAnimating(1);
-	}, []);
+export const ASCIIWrapper = ({ children, speed = 5, ...rest }) => {
+	const [animating, setAnimating] = useState(true);
 
 	const setAnimFinish = useCallback(() => {
-		setAnimating(2);
+		setAnimating(false);
 	}, []);
 
 	return (
-		<>
-			<Scope>
-				<Callback localePriority={1000} callback={setAnimRunning} />
-				<div
-					className={cn({ [styles["before-animating"]]: animating === 0 })}
-				/>
+		<Scope>
+			<Hide localePriority={1000}>
 				<RawASCIIWrapper
 					border={
 						<>
-							<TopBorder />
-							<BottomBorder />
+							<TopBorder speed={speed} />
+							<BottomBorder speed={speed} />
 						</>
 					}
 					bordersClassName={cn({
-						[styles["borders-animated"]]: animating !== 2,
+						[styles["borders-animated"]]: animating,
 					})}
 					{...rest}
 				>
 					{children}
 				</RawASCIIWrapper>
-				<Callback localePriority={-1} callback={setAnimFinish} />
-			</Scope>
-		</>
+			</Hide>
+			<Callback localePriority={-1} callback={setAnimFinish} />
+		</Scope>
 	);
 };
