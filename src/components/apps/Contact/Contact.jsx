@@ -37,7 +37,6 @@ const ContactLink = ({
 				<Hide>
 					<Icon size="sm" icon={icon} />
 				</Hide>
-
 				<AutoStr>{label}</AutoStr>
 			</a>
 		</Scope>
