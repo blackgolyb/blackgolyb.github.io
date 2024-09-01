@@ -70,10 +70,6 @@ export const AnimationFlow = ({
 
 		const arrangedNodes = getPriorityQueue(nodes);
 		animate(arrangedNodes, endCallback);
-
-		return () => {
-			setNodes([]);
-		};
 	}, [animate, endCallback, updateOnChange, isPlayed, innerTrigger]);
 
 	const params = useMemo(() => ({ addNode }), [addNode]);
