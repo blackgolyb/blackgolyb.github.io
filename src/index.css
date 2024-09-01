@@ -1,22 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
     --header-height: 70px;
+
+    --white-color: #e8e6e3;
+    --black-color: #060918;
+    --primary-color: #337dff;
+    --sub-primary-color: #3eef42;
+
+    --text-color: var(--white-color);
+    --bg-color: var(--black-color);
+    --link-color: var(--primary-color);
+    --accent-color: var(--primary-color);
+
+    --valid-color: var(--sub-primary-color) !important;
+    --invalid-color: #ed1515 !important;
+    --text-in-color: #f67400 !important;
+    --prompt-prefix-color: var(--primary-color) !important;
+
+    --icon-color: var(--white-color) !important;
+
     font-family: monospace;
 }
 
 * {
-    font-family: Roboto, monospace, monospace;
+    font-family: "Roboto Mono", monospace;
     line-height: 1.2;
-    font-size: 16pt;
+    font-size: 16px;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 
-    color: white;
+    color: var(--text-color);
     color-scheme: light dark;
+    accent-color: var(--accent-color);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -28,4 +50,32 @@
 button:hover,
 button:focus {
     cursor: pointer;
+}
+
+/* Small devices such as large phones (640px and up) */
+@media only screen and (min-width: 40em) {
+    /* * {
+        font-size: 13pt;
+    } */
+}
+
+/* Medium devices such as tablets (768px and up) */
+@media only screen and (min-width: 48em) {
+    /* * {
+        font-size: 14pt;
+    } */
+}
+
+/* Large devices such as laptops (1024px and up) */
+@media only screen and (min-width: 64em) {
+    /* * {
+        font-size: 15pt;
+    } */
+}
+
+/* Largest devices such as desktops (1280px and up) */
+@media only screen and (min-width: 80em) {
+    /* * {
+        font-size: 16pt;
+    } */
 }

@@ -1,8 +1,13 @@
+:root {
+    --prompt-prefix-color: #1d99f3;
+}
+
 .command-inputted {
     white-space: pre-wrap;
 }
 
 .input-prefix-span {
-    color: #1d99f3;
+    color: var(--prompt-prefix-color);
+    font-weight: bold;
     margin-right: 0.4em;
 }

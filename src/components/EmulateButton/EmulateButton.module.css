@@ -4,6 +4,6 @@
     border: none;
     margin: 0;
     padding: 0;
-    color: blue;
+    color: var(--link-color);
     text-decoration: underline;
 }

@@ -1,6 +1,7 @@
 .next-btn {
     width: 200px;
-    height: 100px;
+    padding: 0 3em;
+    height: 4.5em;
 }
 
 .next-btn:hover,

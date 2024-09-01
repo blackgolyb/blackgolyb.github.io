@@ -1,11 +1,17 @@
+:root {
+    --valid-color: #11d116;
+    --invalid-color: #ed1515;
+    --text-in-color: #f67400;
+}
+
 span.invalid {
-    color: #ed1515;
+    color: var(--invalid-color);
 }
 
 span.valid {
-    color: #11d116;
+    color: var(--valid-color);
 }
 
-span.text {
-    color: #f67400;
+span.text-in {
+    color: var(--text-in-color);
 }
