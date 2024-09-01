@@ -24,21 +24,17 @@ const buttons = {
 };
 
 const wrappedComponents = {
-    string: AutoStr,
+	string: AutoStr,
 };
 
 export const MDApp = (markdown, name) => {
-	return withApp(() => {
-		const [content, setContent] = useState(undefined);
-		const { exit } = useTerminal();
+	let content;
+	loadData((store) => store).then(data => {
+		content = Mustache.render(markdown, data);
+	})
 
-		useEffect(() => {
-			const load = async () => {
-				const store = await loadData((store) => store);
-				setContent(Mustache.render(markdown, store));
-			};
-			load();
-		}, [markdown]);
+	return withApp(() => {
+		const { exit } = useTerminal();
 
 		return (
 			<AnimationFlow endCallback={exit}>

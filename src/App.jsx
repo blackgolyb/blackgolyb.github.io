@@ -5,11 +5,14 @@ import { defaultPlugins as plugins } from "components/Terminal/Plugins";
 import Header from "components/Header/Header";
 import apps from "components/apps";
 import Preview from "components/Preview/Preview";
+
+import { initData } from "services/data";
 import { config } from "core";
 
 import styles from "./App.module.css";
 
 const { introTime } = config;
+initData();
 
 function App() {
 	const terminalRef = useRef(null);

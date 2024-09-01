@@ -1,4 +1,4 @@
-import { config } from "src/core";
+import { config } from "core";
 
 const _data = { data: undefined };
 
@@ -8,6 +8,10 @@ const fetchData = async () => {
 		_data.data = await resp.json();
 	}
 };
+
+export const initData = () => {
+	fetchData();
+}
 
 export const loadData = async (selector) => {
     await fetchData();
