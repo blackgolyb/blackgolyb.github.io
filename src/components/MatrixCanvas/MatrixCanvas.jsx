@@ -1,11 +1,12 @@
 import React, { useLayoutEffect, useRef } from "react";
 import cn from "clsx";
+
 import { getRndInteger } from "utils/utils";
+import { debounce } from "utils/debounce";
 
 import styles from "./MatrixCanvas.module.css";
-import { debounce } from "src/utils/debounce";
 
-const katakana =
+export const katakana =
 	"\
 ァアィイゥウェエォオカガキ\
 ギクグケゲコゴサザシジスズ\
@@ -15,32 +16,43 @@ const katakana =
 モャヤュユョヨラリルレロヮ\
 ワヰヱヲンヴヵヶヷヸヹヺ";
 
-const chinise =
+export const chinise =
 	"\
 田由甲申甴电甶男甸甹町画甼\
 甽甾甿畀畁畂畃畄畅畆畇畈畉\
 畊畋界畍畎畏畐畑";
 
-const symbols =
+export const symbols =
 	"\
 QWERTYUIOPASDFGHJKLZXCVBNM\
 <>?:[]/|\\1234567890-=!@#$%^&*()_+`~";
 
-const MatrixCanvas = (props) => {
+const normalToHex = (n) => {
+	const hex = Math.floor(n * 255).toString(16);
+	return hex.padStart(2, "0");
+};
+
+const MatrixCanvas = ({
+	delay = 20,
+	debounceDelay = 300,
+	font_size = 12,
+	backgroundColor = "#000000",
+	color = "#ffffff",
+	darkening = 0.05,
+	preColumnRepeat = 4,
+	alphabet = katakana,
+	className,
+}) => {
 	const canvasRef = useRef(null);
 	const drops = [];
 	const speeds = [];
-	const delay = props.delay || 20;
-	const debounceDelay = props.debounceDelay || 300;
-	const font_size = props.fontSize || 12;
-	const bgColor = props.bgColor || { R: 0, G: 0, B: 0 };
-	const preColumnRepeat = props.preColumnRepeat || 4;
-	const alphabet = katakana.split("");
+
 	const newLineCoef = 0.975;
 
 	useLayoutEffect(() => {
 		let iteration = 0;
-		const { R, G, B } = bgColor;
+		const hexDarkening = normalToHex(darkening);
+		const symbols = alphabet.split("");
 
 		//drawing the characters
 		function draw() {
@@ -53,11 +65,10 @@ const MatrixCanvas = (props) => {
 			const columns = c.width / font_size;
 			const ctx = c.getContext("2d");
 
-			ctx.fillStyle = `rgba(${R}, ${G}, ${B}, 0.05)`;
+			ctx.fillStyle = backgroundColor + hexDarkening;
 			ctx.fillRect(0, 0, c.width, c.height);
 
-			// ctx.fillStyle = "#6919ff";
-			ctx.fillStyle = "#4f9";
+			ctx.fillStyle = color;
 			ctx.font = font_size + "px arial";
 			//looping over drops
 			for (let i = 0; i < drops.length; i++) {
@@ -67,7 +78,7 @@ const MatrixCanvas = (props) => {
 					continue;
 				}
 
-				const text = alphabet[Math.floor(Math.random() * alphabet.length)];
+				const text = symbols[Math.floor(Math.random() * symbols.length)];
 				//x = t*font_size, y = value of drops[i]*font_size
 				ctx.fillText(text, t * font_size, drops[i] * font_size);
 
@@ -84,9 +95,9 @@ const MatrixCanvas = (props) => {
 
 			iteration = (iteration + 1) % (2 * 3 * 4 * 5);
 		}
-		
+
 		let alreadyResized = false;
-		function reset(repeats = null) {
+		function reset() {
 			alreadyResized = false;
 
 			if (reset.interval) {
@@ -103,7 +114,7 @@ const MatrixCanvas = (props) => {
 
 			const ctx = c.getContext("2d");
 			const columns = c.width / font_size; //number of columns for the rain
-			const rows = repeats ?? c.height / font_size; //number of columns for the rain
+			const rows = Math.max(c.height / font_size, 15); //number of columns for the rain
 			//an array of drops - one per column
 			//x below is the x coordinate
 			//1 = y co-ordinate of the drop(same for every drop initially)
@@ -112,8 +123,9 @@ const MatrixCanvas = (props) => {
 				drops[x] = 1;
 			}
 
+			iteration = 0;
 			for (let x = 0; x < rows; x++) draw();
-			ctx.fillStyle = `rgb(${R}, ${G}, ${B})`;
+			ctx.fillStyle = backgroundColor;
 			ctx.fillRect(0, 0, c.width, c.height);
 
 			reset.interval = setInterval(() => draw(), delay);
@@ -132,9 +144,7 @@ const MatrixCanvas = (props) => {
 		resizeObserver.observe(canvasRef.current);
 	}, []);
 
-	return (
-		<canvas className={cn(styles["canvas"], props.className)} ref={canvasRef} />
-	);
+	return <canvas className={cn(styles["canvas"], className)} ref={canvasRef} />;
 };
 
 export default MatrixCanvas;
