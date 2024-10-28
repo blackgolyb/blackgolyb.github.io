@@ -1,15 +1,15 @@
-import { useEffect } from "react";
+import { MDApp } from "components/MDApp/MDApp";
 
-import { withApp } from "components/Terminal/Utils";
+const Experience = MDApp(
+	`
+Experience:
+{{#experience}}
+ * **{{name}}** {{position}} {{period}} {{city}}
+{{/experience}}
 
-const Experience = withApp((props) => {
-    const { exit } = props.context.terminal;
-
-    useEffect(() => {
-        exit();
-    }, []);
-
-    return <div>Experience</div>;
-}, "experience");
+(n~> ("projects"))
+	`,
+	"experience",
+);
 
 export default Experience;

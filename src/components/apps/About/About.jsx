@@ -1,4 +1,4 @@
-import { MDApp } from "src/components/MDApp/MDApp";
+import { MDApp } from "components/MDApp/MDApp";
 
 import "./About.css";
 
@@ -6,7 +6,7 @@ const About = MDApp(
 	`
 ![avatar {avatar}]({{photo}})
 
-Hi, I'm {{lastName}} {{firstName}}, a {{age}} y.o. passionate {{position}} based in {{city}}.
+Hi, I'm {{lastName}} {{firstName}}, {{age}} y.o. passionate {{position}} based in {{city}}.
 With a strong foundation in backend development, I have experience building scalable
 and efficient applications using modern technologies like Python, FastAPI, and SQLAlchemy.
 My background in applied mathematics and computer engineering drives my interest

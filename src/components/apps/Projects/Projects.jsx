@@ -1,15 +1,21 @@
-import { useEffect } from "react";
+import { MDApp } from "components/MDApp/MDApp";
 
-import { withApp } from "components/Terminal/Utils";
+const Projects = MDApp(
+	`
+Projects:
+{{#projects}}
+<div class="project">
 
-const Projects = withApp((props) => {
-    const { exit } = props.context.terminal;
+**{{name}}** {{period}} [github]({{link}})
 
-    useEffect(() => {
-        exit();
-    }, []);
+*{{brief}}*
 
-    return <div>Projects</div>;
-}, "projects");
+</div>
+{{/projects}}
+
+(n~> ("contact"))
+	`,
+	"projects",
+);
 
 export default Projects;

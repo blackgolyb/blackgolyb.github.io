@@ -10,7 +10,8 @@
 
     --white-color: #e8e6e3;
     --black-color: #060918;
-    --primary-color: #337dff;
+    /* --primary-color: #337dff; */
+    --primary-color: #3d9eff;
     --sub-primary-color: #3eef42;
 
     --text-color: var(--white-color);

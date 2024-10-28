@@ -1,5 +1,5 @@
 const config = {
-	introTime: 7000,
+	introTime: 6500,
 	defaultInterval: 10,
 	defaultRandomRange: [-5, 5],
 	data_url:
