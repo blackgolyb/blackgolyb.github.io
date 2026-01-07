@@ -91,7 +91,7 @@ export class WebGLRenderer {
       "modelMatrix",
     );
 
-    this.viewMatrix = lookAt([0, 0, 4.5], [0, 0, 0], [0, 1, 0]);
+    this.viewMatrix = lookAt([0, 0, 3.0], [0, 0, 0], [0, 1, 0]);
 
     const screenGeometry = this.monitor.createScreenGeometry();
     const bezelGeometry = this.monitor.createBezelGeometry();
@@ -189,8 +189,7 @@ export class WebGLRenderer {
       return;
     }
 
-    const rotationAngle = Math.sin(time * 0.0002) * 0.15;
-    const modelMatrix = rotateY(rotationAngle);
+    const modelMatrix = rotateY(0);
 
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -206,7 +205,6 @@ export class WebGLRenderer {
     );
 
     this.renderScreen(time, modelMatrix);
-    this.renderBezel(modelMatrix);
   }
 
   private renderScreen(time: number, modelMatrix: Float32Array): void {
