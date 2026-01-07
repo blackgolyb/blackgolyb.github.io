@@ -23,6 +23,8 @@ export class XTermAdapter implements ITerminalSource {
         background: "#000000",
         foreground: "#00ff66",
       },
+      scrollback: 10000,
+      allowTransparency: false,
     });
 
     this.terminal.open(this.container);
@@ -35,9 +37,11 @@ export class XTermAdapter implements ITerminalSource {
 
     this.terminal.write("cool-retro-term in browser\r\n$ ");
 
-    setInterval(() => {
-      this.terminal.write("ping\r\n");
-    }, 1000);
+    setTimeout(() => {
+      for (let i = 0; i < 100; i++) {
+        this.terminal.write(`ping${i}\r\n`);
+      }
+    }, 100);
 
     window.addEventListener("resize", () => {
       this.terminal.resize(
@@ -60,6 +64,10 @@ export class XTermAdapter implements ITerminalSource {
 
   isReady(): boolean {
     return this.ready;
+  }
+
+  scroll(lines: number): void {
+    this.terminal.scrollLines(lines);
   }
 
   write(data: string): void {
