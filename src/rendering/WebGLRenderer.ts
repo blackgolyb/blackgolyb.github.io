@@ -91,7 +91,7 @@ export class WebGLRenderer {
       "modelMatrix",
     );
 
-    this.viewMatrix = lookAt([0, 0, 3.0], [0, 0, 0], [0, 1, 0]);
+    this.viewMatrix = lookAt([0, 0, 1.5], [0, 0, 0], [0, 1, 0]);
 
     const screenGeometry = this.monitor.createScreenGeometry();
     const bezelGeometry = this.monitor.createBezelGeometry();
@@ -168,7 +168,7 @@ export class WebGLRenderer {
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
     const aspect = this.canvas.width / this.canvas.height;
-    const projMatrix = perspective(Math.PI / 4, aspect, 0.1, 100.0);
+    const projMatrix = perspective(Math.PI / 3, aspect, 0.1, 100.0);
 
     this.gl.useProgram(this.screenProgram);
     this.gl.uniformMatrix4fv(this.screenProjLoc, false, projMatrix);

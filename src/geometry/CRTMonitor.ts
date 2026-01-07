@@ -11,8 +11,8 @@ export class CRTMonitor {
   private depth: number;
 
   constructor(
-    screenWidth: number = 1.5,
-    screenHeight: number = 1.0,
+    screenWidth: number = 2.0,
+    screenHeight: number = 2.0,
     bezelSize: number = 0.15,
     depth: number = 0.3,
   ) {
@@ -23,8 +23,8 @@ export class CRTMonitor {
   }
 
   createScreenGeometry(): GeometryData {
-    const sx = this.screenWidth / 2;
-    const sy = this.screenHeight / 2;
+    const sx = 1.0;
+    const sy = 1.0;
 
     const vertices = new Float32Array([
       -sx,
