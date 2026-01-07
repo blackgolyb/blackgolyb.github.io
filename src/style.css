@@ -3,16 +3,24 @@ body {
     margin: 0;
     background: #0a0a0a;
     height: 100%;
+    width: 100%;
     overflow: hidden;
 }
 
 #term {
     position: absolute;
-    visibility: hidden; /* hide raw canvas */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
 }
 
 #gl {
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
 }

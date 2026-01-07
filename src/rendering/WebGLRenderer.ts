@@ -91,18 +91,18 @@ export class WebGLRenderer {
       "modelMatrix",
     );
 
-    this.viewMatrix = lookAt([0, 0, 1.5], [0, 0, 0], [0, 1, 0]);
+    this.viewMatrix = lookAt([0, 0, 1.0], [0, 0, 0], [0, 1, 0]);
 
-    const screenGeometry = this.monitor.createScreenGeometry();
     const bezelGeometry = this.monitor.createBezelGeometry();
-
-    this.screenVertexBuffer = this.createBuffer(screenGeometry.vertices);
-    this.screenIndexBuffer = this.createIndexBuffer(screenGeometry.indices);
     this.bezelVertexBuffer = this.createBuffer(bezelGeometry.vertices);
     this.bezelIndexBuffer = this.createIndexBuffer(bezelGeometry.indices);
-
-    this.screenIndexCount = screenGeometry.indices.length;
     this.bezelIndexCount = bezelGeometry.indices.length;
+
+    this.screenVertexBuffer = this.gl.createBuffer()!;
+    this.screenIndexBuffer = this.gl.createBuffer()!;
+    this.screenIndexCount = 0;
+
+    this.updateScreenGeometry(1.0);
 
     this.texture = this.createTexture();
 
@@ -162,13 +162,35 @@ export class WebGLRenderer {
     return texture;
   }
 
+  private updateScreenGeometry(aspect: number): void {
+    const screenGeometry = this.monitor.createScreenGeometry(aspect);
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
+    this.gl.bufferData(
+      this.gl.ARRAY_BUFFER,
+      screenGeometry.vertices,
+      this.gl.STATIC_DRAW,
+    );
+
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.screenIndexBuffer);
+    this.gl.bufferData(
+      this.gl.ELEMENT_ARRAY_BUFFER,
+      screenGeometry.indices,
+      this.gl.STATIC_DRAW,
+    );
+
+    this.screenIndexCount = screenGeometry.indices.length;
+  }
+
   resize(): void {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
     const aspect = this.canvas.width / this.canvas.height;
-    const projMatrix = perspective(Math.PI / 3, aspect, 0.1, 100.0);
+    this.updateScreenGeometry(aspect);
+
+    const projMatrix = perspective(Math.PI / 2, aspect, 0.1, 100.0);
 
     this.gl.useProgram(this.screenProgram);
     this.gl.uniformMatrix4fv(this.screenProjLoc, false, projMatrix);
@@ -249,34 +271,6 @@ export class WebGLRenderer {
     this.gl.drawElements(
       this.gl.TRIANGLES,
       this.screenIndexCount,
-      this.gl.UNSIGNED_SHORT,
-      0,
-    );
-  }
-
-  private renderBezel(modelMatrix: Float32Array): void {
-    this.gl.useProgram(this.bezelProgram);
-    this.gl.uniformMatrix4fv(this.bezelModelLoc, false, modelMatrix);
-
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.bezelVertexBuffer);
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.bezelIndexBuffer);
-
-    const bezelPosLoc = this.gl.getAttribLocation(this.bezelProgram, "pos");
-    this.gl.enableVertexAttribArray(bezelPosLoc);
-
-    const bezelStride = 3 * 4;
-    this.gl.vertexAttribPointer(
-      bezelPosLoc,
-      3,
-      this.gl.FLOAT,
-      false,
-      bezelStride,
-      0,
-    );
-
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      this.bezelIndexCount,
       this.gl.UNSIGNED_SHORT,
       0,
     );

@@ -22,9 +22,9 @@ export class CRTMonitor {
     this.depth = depth;
   }
 
-  createScreenGeometry(): GeometryData {
-    const sx = 1.0;
-    const sy = 1.0;
+  createScreenGeometry(aspect: number = 1.0): GeometryData {
+    const sx = aspect;
+    const sy = 1;
 
     const vertices = new Float32Array([
       -sx,

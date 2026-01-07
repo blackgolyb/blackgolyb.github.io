@@ -38,6 +38,20 @@ export class XTermAdapter implements ITerminalSource {
     setInterval(() => {
       this.terminal.write("ping\r\n");
     }, 1000);
+
+    window.addEventListener("resize", () => {
+      this.terminal.resize(
+        Math.floor(this.container.clientWidth / 9),
+        Math.floor(this.container.clientHeight / 17),
+      );
+    });
+
+    setTimeout(() => {
+      this.terminal.resize(
+        Math.floor(this.container.clientWidth / 9),
+        Math.floor(this.container.clientHeight / 17),
+      );
+    }, 100);
   }
 
   getCanvas(): HTMLCanvasElement | null {
