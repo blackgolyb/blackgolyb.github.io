@@ -5,22 +5,7 @@ export interface GeometryData {
 }
 
 export class CRTMonitor {
-  private screenWidth: number;
-  private screenHeight: number;
-  private bezelSize: number;
-  private depth: number;
-
-  constructor(
-    screenWidth: number = 2.0,
-    screenHeight: number = 2.0,
-    bezelSize: number = 0.15,
-    depth: number = 0.3,
-  ) {
-    this.screenWidth = screenWidth;
-    this.screenHeight = screenHeight;
-    this.bezelSize = bezelSize;
-    this.depth = depth;
-  }
+  constructor() {}
 
   createScreenGeometry(aspect: number = 1.0): GeometryData {
     const sx = aspect;

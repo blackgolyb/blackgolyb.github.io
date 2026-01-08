@@ -2,7 +2,6 @@ import { ITerminalSource } from "../core/ITerminalSource";
 import { createProgram } from "../utils/shader";
 import { perspective, lookAt, rotateY } from "../utils/matrix";
 import { screenVertexShader, screenFragmentShader } from "./screenShader";
-import { bezelVertexShader, bezelFragmentShader } from "./bezelShader";
 import { CRTMonitor } from "../geometry/CRTMonitor";
 
 export class WebGLRenderer {
@@ -11,12 +10,9 @@ export class WebGLRenderer {
   private terminalSource: ITerminalSource;
 
   private screenProgram: WebGLProgram;
-  private bezelProgram: WebGLProgram;
 
   private screenVertexBuffer: WebGLBuffer;
   private screenIndexBuffer: WebGLBuffer;
-  private bezelVertexBuffer: WebGLBuffer;
-  private bezelIndexBuffer: WebGLBuffer;
 
   private texture: WebGLTexture;
 
@@ -26,15 +22,10 @@ export class WebGLRenderer {
   private screenTimeLoc: WebGLUniformLocation | null;
   private screenResLoc: WebGLUniformLocation | null;
 
-  private bezelProjLoc: WebGLUniformLocation | null;
-  private bezelViewLoc: WebGLUniformLocation | null;
-  private bezelModelLoc: WebGLUniformLocation | null;
-
   private viewMatrix: Float32Array;
   private monitor: CRTMonitor;
 
   private screenIndexCount: number;
-  private bezelIndexCount: number;
 
   constructor(canvasId: string, terminalSource: ITerminalSource) {
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -57,11 +48,6 @@ export class WebGLRenderer {
       screenVertexShader,
       screenFragmentShader,
     );
-    this.bezelProgram = createProgram(
-      this.gl,
-      bezelVertexShader,
-      bezelFragmentShader,
-    );
 
     this.screenProjLoc = this.gl.getUniformLocation(
       this.screenProgram,
@@ -78,25 +64,7 @@ export class WebGLRenderer {
     this.screenTimeLoc = this.gl.getUniformLocation(this.screenProgram, "time");
     this.screenResLoc = this.gl.getUniformLocation(this.screenProgram, "res");
 
-    this.bezelProjLoc = this.gl.getUniformLocation(
-      this.bezelProgram,
-      "projMatrix",
-    );
-    this.bezelViewLoc = this.gl.getUniformLocation(
-      this.bezelProgram,
-      "viewMatrix",
-    );
-    this.bezelModelLoc = this.gl.getUniformLocation(
-      this.bezelProgram,
-      "modelMatrix",
-    );
-
     this.viewMatrix = lookAt([0, 0, 1.0], [0, 0, 0], [0, 1, 0]);
-
-    const bezelGeometry = this.monitor.createBezelGeometry();
-    this.bezelVertexBuffer = this.createBuffer(bezelGeometry.vertices);
-    this.bezelIndexBuffer = this.createIndexBuffer(bezelGeometry.indices);
-    this.bezelIndexCount = bezelGeometry.indices.length;
 
     this.screenVertexBuffer = this.gl.createBuffer()!;
     this.screenIndexBuffer = this.gl.createBuffer()!;
@@ -111,26 +79,6 @@ export class WebGLRenderer {
 
     this.resize();
     window.addEventListener("resize", () => this.resize());
-  }
-
-  private createBuffer(data: Float32Array): WebGLBuffer {
-    const buffer = this.gl.createBuffer();
-    if (!buffer) {
-      throw new Error("Failed to create buffer");
-    }
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-    return buffer;
-  }
-
-  private createIndexBuffer(data: Uint16Array): WebGLBuffer {
-    const buffer = this.gl.createBuffer();
-    if (!buffer) {
-      throw new Error("Failed to create index buffer");
-    }
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-    return buffer;
   }
 
   private createTexture(): WebGLTexture {
@@ -195,10 +143,6 @@ export class WebGLRenderer {
     this.gl.useProgram(this.screenProgram);
     this.gl.uniformMatrix4fv(this.screenProjLoc, false, projMatrix);
     this.gl.uniformMatrix4fv(this.screenViewLoc, false, this.viewMatrix);
-
-    this.gl.useProgram(this.bezelProgram);
-    this.gl.uniformMatrix4fv(this.bezelProjLoc, false, projMatrix);
-    this.gl.uniformMatrix4fv(this.bezelViewLoc, false, this.viewMatrix);
   }
 
   render(time: number): void {
