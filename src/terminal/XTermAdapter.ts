@@ -16,6 +16,36 @@ export class XTermAdapter implements ITerminalSource {
   private backend!: TerminalBackend;
   private registry: CommandRegistry;
 
+  // Key mappings for terminal input
+  private readonly ctrlKeyMap: Record<string, string> = {
+    c: "\x03", // ETX
+    d: "\x04", // EOT
+    z: "\x1a", // SUB
+    l: "\x0c", // Form feed (clear)
+    u: "\x15", // NAK (kill line)
+    k: "\x0b", // VT (kill to end)
+    w: "\x17", // ETB (kill word)
+    a: "\x01", // SOH (beginning of line)
+    e: "\x05", // ENQ (end of line)
+  };
+
+  private readonly specialKeyMap: Record<string, string> = {
+    Enter: "\r",
+    Backspace: "\x7f",
+    Tab: "\t",
+    Escape: "\x1b",
+    ArrowUp: "\x1b[A",
+    ArrowDown: "\x1b[B",
+    ArrowRight: "\x1b[C",
+    ArrowLeft: "\x1b[D",
+    Home: "\x1b[H",
+    End: "\x1b[F",
+    PageUp: "\x1b[5~",
+    PageDown: "\x1b[6~",
+    Insert: "\x1b[2~",
+    Delete: "\x1b[3~",
+  };
+
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
     if (!element) {
@@ -54,10 +84,6 @@ export class XTermAdapter implements ITerminalSource {
         Math.floor(this.container.clientWidth / 9),
         Math.floor(this.container.clientHeight / 17),
       );
-    });
-
-    window.addEventListener("click", () => {
-      this.terminal.focus();
     });
 
     setTimeout(() => {
@@ -110,5 +136,34 @@ export class XTermAdapter implements ITerminalSource {
 
   getRegistry(): CommandRegistry {
     return this.registry;
+  }
+
+  handleInput(event: KeyboardEvent): void {
+    if (!this.ready) return;
+
+    const { key, ctrlKey, altKey, metaKey } = event;
+
+    // Handle Ctrl combinations
+    if (ctrlKey && this.ctrlKeyMap[key]) {
+      this.terminal.write(this.ctrlKeyMap[key]);
+      return;
+    }
+
+    // Handle Alt/Meta combinations (escape sequences)
+    if ((altKey || metaKey) && key.length === 1) {
+      this.terminal.write("\x1b" + key);
+      return;
+    }
+
+    // Handle special keys
+    if (this.specialKeyMap[key]) {
+      this.terminal.write(this.specialKeyMap[key]);
+      return;
+    }
+
+    // Handle regular printable characters
+    if (key.length === 1) {
+      this.terminal.write(key);
+    }
   }
 }
