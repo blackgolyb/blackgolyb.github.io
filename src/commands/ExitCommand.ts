@@ -1,4 +1,5 @@
 import { ICommand, CommandContext } from "./ICommand";
+import { typeText, delay } from "../utils/textAnimations";
 
 export class ExitCommand implements ICommand {
   name = "exit";
@@ -12,12 +13,12 @@ export class ExitCommand implements ICommand {
     terminal.write("\r\n");
 
     // Phase 1: Warning
-    await this.typeText(
+    await typeText(
       terminal,
       "\x1b[33m⚠ WARNING: Initiating system shutdown...\x1b[0m\r\n",
       30,
     );
-    await this.delay(500);
+    await delay(500);
 
     // Phase 2: Error messages
     const errors = [
@@ -29,60 +30,45 @@ export class ExitCommand implements ICommand {
     ];
 
     for (const error of errors) {
-      await this.typeText(terminal, error + "\r\n", 20);
-      await this.delay(200);
+      await typeText(terminal, error + "\r\n", 20);
+      await delay(200);
     }
 
-    await this.delay(500);
+    await delay(500);
 
     // Phase 3: Glitch effect
     terminal.write("\r\n\x1b[5m\x1b[31m");
-    await this.typeText(terminal, "SYSTEM FAILURE IMMINENT", 50);
+    await typeText(terminal, "SYSTEM FAILURE IMMINENT", 50);
     terminal.write("\x1b[0m\r\n\r\n");
-    await this.delay(300);
+    await delay(300);
 
     // Phase 4: Countdown
     for (let i = 5; i > 0; i--) {
       terminal.write(`\x1b[1m\x1b[31m${i}...\x1b[0m `);
-      await this.delay(400);
+      await delay(400);
     }
     terminal.write("\r\n\r\n");
 
     // Phase 5: Final messages
-    await this.typeText(
-      terminal,
-      "\x1b[31m>> REALITY.SYS CORRUPTED\x1b[0m\r\n",
-      40,
-    );
-    await this.typeText(
+    await typeText(terminal, "\x1b[31m>> REALITY.SYS CORRUPTED\x1b[0m\r\n", 40);
+    await typeText(
       terminal,
       "\x1b[31m>> DISCONNECTING FROM SIMULATION\x1b[0m\r\n",
       40,
     );
-    await this.delay(500);
+    await delay(500);
 
     // Phase 6: Screen glitch
     await this.glitchEffect(terminal);
 
     // Phase 7: Final goodbye
     terminal.write("\r\n\x1b[92m");
-    await this.typeText(terminal, "Wake up, Neo...", 100);
+    await typeText(terminal, "Wake up, Neo...", 100);
     terminal.write("\x1b[0m\r\n\r\n");
-    await this.delay(1000);
+    await delay(1000);
 
     // Phase 8: Break the site
     await this.destroySite();
-  }
-
-  private async typeText(
-    terminal: any,
-    text: string,
-    delayMs: number,
-  ): Promise<void> {
-    for (const char of text) {
-      terminal.write(char);
-      await this.delay(delayMs);
-    }
   }
 
   private async glitchEffect(terminal: any): Promise<void> {
@@ -95,7 +81,7 @@ export class ExitCommand implements ICommand {
         terminal.write(char);
       }
       terminal.write("\x1b[0m");
-      await this.delay(50);
+      await delay(50);
     }
   }
 
@@ -177,14 +163,14 @@ export class ExitCommand implements ICommand {
       glCanvas.style.animation = "screenShake 0.5s ease-in-out";
     }
 
-    await this.delay(500);
+    await delay(500);
 
     // Color distortion
     if (glCanvas) {
       glCanvas.style.animation = "colorDistortion 2s linear";
     }
 
-    await this.delay(500);
+    await delay(500);
 
     // Glitch the canvas
     if (glCanvas) {
@@ -209,7 +195,7 @@ export class ExitCommand implements ICommand {
           }
 
           ctx.putImageData(imageData, 0, 0);
-          await this.delay(50);
+          await delay(50);
         }
       }
     }
@@ -219,7 +205,7 @@ export class ExitCommand implements ICommand {
       overlay.style.opacity = "1";
     }, 100);
 
-    await this.delay(1000);
+    await delay(1000);
 
     // Break everything
     if (glCanvas) {
@@ -240,9 +226,5 @@ export class ExitCommand implements ICommand {
       rotation += 5;
       body.style.transform = `rotate(${rotation}deg)`;
     }, 100);
-  }
-
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
