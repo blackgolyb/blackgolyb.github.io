@@ -8,6 +8,7 @@ export class BasicShell implements IShell {
   private promptString: string = "\x1b[32m$\x1b[0m ";
   private history: string[] = [];
   private historyIndex: number = -1;
+  private historySearchPrefix: string = "";
   private commandExecutor?: (
     command: string,
     args: string[],
@@ -159,6 +160,7 @@ export class BasicShell implements IShell {
     // Reset line state immediately
     this.currentLine = "";
     this.cursorPosition = 0;
+    this.historySearchPrefix = "";
 
     if (line.length > 0) {
       this.history.push(line);
@@ -177,6 +179,8 @@ export class BasicShell implements IShell {
         this.currentLine.slice(0, this.cursorPosition - 1) +
         this.currentLine.slice(this.cursorPosition);
       this.cursorPosition--;
+      // Reset history search when editing
+      this.historySearchPrefix = "";
       this.redrawLine();
     }
   }
@@ -194,6 +198,8 @@ export class BasicShell implements IShell {
       data +
       this.currentLine.slice(this.cursorPosition);
     this.cursorPosition++;
+    // Reset history search when typing
+    this.historySearchPrefix = "";
     this.redrawLine();
   }
 
@@ -225,26 +231,45 @@ export class BasicShell implements IShell {
   }
 
   private handleHistoryUp(): void {
-    if (this.historyIndex > 0) {
-      this.historyIndex--;
-      this.currentLine = this.history[this.historyIndex];
-      this.cursorPosition = this.currentLine.length;
-      this.redrawLine();
+    // If starting history search, remember the current prefix
+    if (this.historyIndex === this.history.length) {
+      this.historySearchPrefix = this.currentLine;
+    }
+
+    // Find previous matching command
+    for (let i = this.historyIndex - 1; i >= 0; i--) {
+      if (this.history[i].startsWith(this.historySearchPrefix)) {
+        this.historyIndex = i;
+        this.currentLine = this.history[i];
+        this.cursorPosition = this.currentLine.length;
+        this.redrawLine();
+        return;
+      }
     }
   }
 
   private handleHistoryDown(): void {
-    if (this.historyIndex < this.history.length - 1) {
-      this.historyIndex++;
-      this.currentLine = this.history[this.historyIndex];
-      this.cursorPosition = this.currentLine.length;
-      this.redrawLine();
-    } else if (this.historyIndex === this.history.length - 1) {
-      this.historyIndex = this.history.length;
-      this.currentLine = "";
-      this.cursorPosition = 0;
-      this.redrawLine();
+    // If at current input, nothing to do
+    if (this.historyIndex >= this.history.length) {
+      return;
     }
+
+    // Find next matching command
+    for (let i = this.historyIndex + 1; i < this.history.length; i++) {
+      if (this.history[i].startsWith(this.historySearchPrefix)) {
+        this.historyIndex = i;
+        this.currentLine = this.history[i];
+        this.cursorPosition = this.currentLine.length;
+        this.redrawLine();
+        return;
+      }
+    }
+
+    // If no match found, return to original search prefix
+    this.historyIndex = this.history.length;
+    this.currentLine = this.historySearchPrefix;
+    this.cursorPosition = this.currentLine.length;
+    this.redrawLine();
   }
 
   private handleLeftArrow(): void {
@@ -283,6 +308,7 @@ export class BasicShell implements IShell {
   private clearCurrentLine(): void {
     this.currentLine = "";
     this.cursorPosition = 0;
+    this.historySearchPrefix = "";
     this.redrawLine();
   }
 

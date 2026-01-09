@@ -27,9 +27,9 @@ export class Application {
 
     // Handle keyboard input directly
     this.glCanvas.addEventListener("keydown", (event) => {
-      // Don't prevent default for scroll keys, handle them separately
+      // Don't prevent default for PageUp/PageDown, handle them separately
       if (
-        !["PageUp", "PageDown", "ArrowUp", "ArrowDown"].includes(event.key) ||
+        !["PageUp", "PageDown"].includes(event.key) ||
         event.ctrlKey ||
         event.altKey ||
         event.metaKey
@@ -68,22 +68,6 @@ export class Application {
       } else if (event.key === "PageDown") {
         event.preventDefault();
         this.terminalSource.scroll(10);
-      } else if (
-        event.key === "ArrowUp" &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        !event.metaKey
-      ) {
-        event.preventDefault();
-        this.terminalSource.scroll(-1);
-      } else if (
-        event.key === "ArrowDown" &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        !event.metaKey
-      ) {
-        event.preventDefault();
-        this.terminalSource.scroll(1);
       }
     });
   }
