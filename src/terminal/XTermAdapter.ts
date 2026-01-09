@@ -8,6 +8,7 @@ import { HelpCommand } from "../commands/HelpCommand";
 import { ClearCommand } from "../commands/ClearCommand";
 import { EchoCommand } from "../commands/EchoCommand";
 import { MatrixCommand } from "../commands/MatrixCommand";
+import { ExitCommand } from "../commands/ExitCommand";
 
 export class XTermAdapter implements ITerminalSource {
   private terminal: Terminal;
@@ -100,6 +101,7 @@ export class XTermAdapter implements ITerminalSource {
     this.registry.register(new ClearCommand());
     this.registry.register(new EchoCommand());
     this.registry.register(new MatrixCommand());
+    this.registry.register(new ExitCommand());
   }
 
   private showWelcome(): void {
