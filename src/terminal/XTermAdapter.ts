@@ -143,27 +143,28 @@ export class XTermAdapter implements ITerminalSource {
 
     const { key, ctrlKey, altKey, metaKey } = event;
 
+    let data = "";
+
     // Handle Ctrl combinations
     if (ctrlKey && this.ctrlKeyMap[key]) {
-      this.terminal.write(this.ctrlKeyMap[key]);
-      return;
+      data = this.ctrlKeyMap[key];
     }
-
     // Handle Alt/Meta combinations (escape sequences)
-    if ((altKey || metaKey) && key.length === 1) {
-      this.terminal.write("\x1b" + key);
-      return;
+    else if ((altKey || metaKey) && key.length === 1) {
+      data = "\x1b" + key;
     }
-
     // Handle special keys
-    if (this.specialKeyMap[key]) {
-      this.terminal.write(this.specialKeyMap[key]);
-      return;
+    else if (this.specialKeyMap[key]) {
+      data = this.specialKeyMap[key];
+    }
+    // Handle regular printable characters
+    else if (key.length === 1) {
+      data = key;
     }
 
-    // Handle regular printable characters
-    if (key.length === 1) {
-      this.terminal.write(key);
+    // Send data to backend shell for processing
+    if (data) {
+      this.backend.getBackend().handleData(data);
     }
   }
 }

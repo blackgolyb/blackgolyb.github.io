@@ -81,4 +81,8 @@ export class TerminalBackend implements TerminalAPI, ShellOutput {
   getBackend(): TerminalBackend {
     return this;
   }
+
+  handleData(data: string): void {
+    this.shell.handleData(data);
+  }
 }

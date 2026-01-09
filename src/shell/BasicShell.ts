@@ -155,6 +155,11 @@ export class BasicShell implements IShell {
     this.output.write("\r\n");
 
     const line = this.currentLine.trim();
+
+    // Reset line state immediately
+    this.currentLine = "";
+    this.cursorPosition = 0;
+
     if (line.length > 0) {
       this.history.push(line);
       this.historyIndex = this.history.length;
@@ -164,9 +169,6 @@ export class BasicShell implements IShell {
     } else {
       this.showPrompt();
     }
-
-    this.currentLine = "";
-    this.cursorPosition = 0;
   }
 
   private handleBackspace(): void {
