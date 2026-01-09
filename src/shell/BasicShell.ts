@@ -163,7 +163,11 @@ export class BasicShell implements IShell {
     this.historySearchPrefix = "";
 
     if (line.length > 0) {
-      this.history.push(line);
+      // Only add to history if it's different from the last entry
+      const lastEntry = this.history[this.history.length - 1];
+      if (lastEntry !== line) {
+        this.history.push(line);
+      }
       this.historyIndex = this.history.length;
       this.executeCommand(line).then(() => {
         this.showPrompt();
