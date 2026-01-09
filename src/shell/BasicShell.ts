@@ -34,6 +34,7 @@ export class BasicShell implements IShell {
     "clear",
     "echo",
     "matrix",
+    "mtext",
     "ls",
     "cd",
     "pwd",

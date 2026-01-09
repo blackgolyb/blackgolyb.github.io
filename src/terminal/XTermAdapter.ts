@@ -8,6 +8,7 @@ import { HelpCommand } from "../commands/HelpCommand";
 import { ClearCommand } from "../commands/ClearCommand";
 import { EchoCommand } from "../commands/EchoCommand";
 import { MatrixCommand } from "../commands/MatrixCommand";
+import { MatrixTextCommand } from "../commands/MatrixTextCommand";
 import { ExitCommand } from "../commands/ExitCommand";
 
 export class XTermAdapter implements ITerminalSource {
@@ -101,6 +102,7 @@ export class XTermAdapter implements ITerminalSource {
     this.registry.register(new ClearCommand());
     this.registry.register(new EchoCommand());
     this.registry.register(new MatrixCommand());
+    this.registry.register(new MatrixTextCommand());
     this.registry.register(new ExitCommand());
   }
 
