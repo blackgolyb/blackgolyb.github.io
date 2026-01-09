@@ -9,6 +9,8 @@ export class BasicShell implements IShell {
   private history: string[] = [];
   private historyIndex: number = -1;
   private historySearchPrefix: string = "";
+  private cursorVisible: boolean = true;
+  private cursorBlinkInterval?: ReturnType<typeof setInterval>;
   private commandExecutor?: (
     command: string,
     args: string[],
@@ -41,6 +43,7 @@ export class BasicShell implements IShell {
 
   constructor(output: ShellOutput) {
     this.output = output;
+    this.startCursorBlink();
   }
 
   handleData(data: string): void {
@@ -153,6 +156,23 @@ export class BasicShell implements IShell {
     this.commandExecutor = executor;
   }
 
+  private startCursorBlink(): void {
+    this.cursorBlinkInterval = setInterval(() => {
+      if (!this.executing) {
+        this.cursorVisible = !this.cursorVisible;
+        this.redrawLine();
+      }
+    }, 530); // Standard terminal cursor blink rate
+  }
+
+  private resetCursorBlink(): void {
+    this.cursorVisible = true;
+    if (this.cursorBlinkInterval) {
+      clearInterval(this.cursorBlinkInterval);
+    }
+    this.startCursorBlink();
+  }
+
   private handleEnter(): void {
     this.output.write("\r\n");
 
@@ -191,6 +211,7 @@ export class BasicShell implements IShell {
       this.cursorPosition--;
       // Reset history search when editing
       this.historySearchPrefix = "";
+      this.resetCursorBlink();
       this.redrawLine();
     }
   }
@@ -215,6 +236,7 @@ export class BasicShell implements IShell {
     this.cursorPosition++;
     // Reset history search when typing - current line becomes new prefix
     this.historySearchPrefix = "";
+    this.resetCursorBlink();
     this.redrawLine();
   }
 
@@ -257,6 +279,7 @@ export class BasicShell implements IShell {
         this.historyIndex = i;
         this.currentLine = this.history[i];
         this.cursorPosition = this.currentLine.length;
+        this.resetCursorBlink();
         this.redrawLine();
         return;
       }
@@ -275,6 +298,7 @@ export class BasicShell implements IShell {
         this.historyIndex = i;
         this.currentLine = this.history[i];
         this.cursorPosition = this.currentLine.length;
+        this.resetCursorBlink();
         this.redrawLine();
         return;
       }
@@ -284,6 +308,7 @@ export class BasicShell implements IShell {
     this.historyIndex = this.history.length;
     this.currentLine = this.historySearchPrefix;
     this.cursorPosition = this.currentLine.length;
+    this.resetCursorBlink();
     this.redrawLine();
   }
 
@@ -313,6 +338,7 @@ export class BasicShell implements IShell {
         this.currentLine.slice(this.cursorPosition + 1);
       // Reset history search when editing
       this.historySearchPrefix = "";
+      this.resetCursorBlink();
       this.redrawLine();
     }
   }
@@ -331,17 +357,48 @@ export class BasicShell implements IShell {
     this.currentLine = "";
     this.cursorPosition = 0;
     this.historySearchPrefix = "";
+    this.resetCursorBlink();
     this.redrawLine();
   }
 
   private redrawLine(): void {
     const highlightedLine = this.highlightSyntax(this.currentLine);
-    this.output.write("\r\x1b[K" + this.promptString + highlightedLine);
-    const moveBack =
-      this.getVisualLength(this.currentLine) - this.cursorPosition;
-    if (moveBack > 0) {
-      this.output.write(`\x1b[${moveBack}D`);
+
+    // Split the line at cursor position for cursor rendering
+    const beforeCursor = highlightedLine.substring(
+      0,
+      this.getCursorVisualPosition(),
+    );
+    const atCursor = this.currentLine[this.cursorPosition] || " ";
+    const afterCursor = highlightedLine.substring(
+      this.getCursorVisualPosition() + 1,
+    );
+
+    // Clear line and write prompt + content
+    this.output.write("\r\x1b[K" + this.promptString);
+
+    if (this.cursorPosition < this.currentLine.length) {
+      // Cursor in middle of line
+      this.output.write(beforeCursor);
+      if (this.cursorVisible) {
+        this.output.write(`\x1b[7m${atCursor}\x1b[27m`); // Reverse video for cursor
+      } else {
+        this.output.write(atCursor);
+      }
+      this.output.write(afterCursor);
+    } else {
+      // Cursor at end of line
+      this.output.write(highlightedLine);
+      if (this.cursorVisible) {
+        this.output.write("\x1b[7m \x1b[27m"); // Block cursor at end
+      }
     }
+  }
+
+  private getCursorVisualPosition(): number {
+    // For now, assume 1:1 mapping (no wide characters)
+    // TODO: Handle ANSI escape sequences in calculation
+    return this.cursorPosition;
   }
 
   private highlightSyntax(line: string): string {
@@ -364,10 +421,5 @@ export class BasicShell implements IShell {
         return part;
       })
       .join("");
-  }
-
-  private getVisualLength(text: string): number {
-    // Remove ANSI escape sequences for accurate length calculation
-    return text.replace(/\x1b\[[0-9;]*m/g, "").length;
   }
 }
