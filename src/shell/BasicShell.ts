@@ -175,6 +175,11 @@ export class BasicShell implements IShell {
 
   private handleBackspace(): void {
     if (this.cursorPosition > 0) {
+      // If browsing history, exit to current buffer
+      if (this.historyIndex < this.history.length) {
+        this.historyIndex = this.history.length;
+      }
+
       this.currentLine =
         this.currentLine.slice(0, this.cursorPosition - 1) +
         this.currentLine.slice(this.cursorPosition);
@@ -193,12 +198,17 @@ export class BasicShell implements IShell {
   }
 
   private handlePrintable(data: string): void {
+    // If browsing history, exit to current buffer
+    if (this.historyIndex < this.history.length) {
+      this.historyIndex = this.history.length;
+    }
+
     this.currentLine =
       this.currentLine.slice(0, this.cursorPosition) +
       data +
       this.currentLine.slice(this.cursorPosition);
     this.cursorPosition++;
-    // Reset history search when typing
+    // Reset history search when typing - current line becomes new prefix
     this.historySearchPrefix = "";
     this.redrawLine();
   }
@@ -288,9 +298,16 @@ export class BasicShell implements IShell {
 
   private handleDelete(): void {
     if (this.cursorPosition < this.currentLine.length) {
+      // If browsing history, exit to current buffer
+      if (this.historyIndex < this.history.length) {
+        this.historyIndex = this.history.length;
+      }
+
       this.currentLine =
         this.currentLine.slice(0, this.cursorPosition) +
         this.currentLine.slice(this.cursorPosition + 1);
+      // Reset history search when editing
+      this.historySearchPrefix = "";
       this.redrawLine();
     }
   }
