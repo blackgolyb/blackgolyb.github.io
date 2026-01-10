@@ -1,20 +1,46 @@
-import { ICommand, CommandContext } from "./ICommand";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext, ProcessState } from "../process/IProcess";
 import { generateAsciiArt } from "../utils/asciiArt";
+import { Terminal } from "@xterm/xterm";
 
-export class MatrixTextCommand implements ICommand {
-  name = "mtext";
-  description = "Display text with Matrix digital rain effect";
-  usage = "mtext <text>";
+export class MatrixTextCommand extends BaseProcess {
+  private running: boolean = false;
+  private terminal?: Terminal;
 
-  async execute(context: CommandContext): Promise<void> {
+  constructor() {
+    super("mtext");
+  }
+
+  isInteractive(): boolean {
+    return true;
+  }
+
+  onInput(data: string): void {
+    // Ctrl+C to exit
+    if (data.charCodeAt(0) === 3) {
+      this.running = false;
+      this.terminate();
+    }
+  }
+
+  protected async run(context: ProcessContext): Promise<void> {
     if (context.args.length === 0) {
-      context.terminal.writeLine("\x1b[33mUsage: mtext <text>\x1b[0m");
-      context.terminal.writeLine("Example: mtext HELLO WORLD");
+      this.writeLine("\x1b[33mUsage: mtext <text>\x1b[0m");
+      this.writeLine("Example: mtext HELLO WORLD");
       return;
     }
 
     const text = context.args.join(" ");
-    const terminal = context.terminal.getTerminal();
+
+    // We need direct access to terminal for canvas manipulation
+    this.terminal = (context.io as any).getTerminal?.();
+
+    if (!this.terminal) {
+      this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
+      return;
+    }
+
+    const terminal = this.terminal;
     const cols = terminal.cols;
     const rows = terminal.rows;
 
@@ -49,16 +75,9 @@ export class MatrixTextCommand implements ICommand {
       });
     }
 
-    let running = true;
+    this.running = true;
     let frame = 0;
     const revealDuration = 150; // frames to fully reveal text
-
-    // Handle Ctrl+C to exit
-    const dataHandler = terminal.onData((data) => {
-      if (data.charCodeAt(0) === 3) {
-        running = false;
-      }
-    });
 
     // Hide cursor
     terminal.write("\x1b[?25l");
@@ -67,10 +86,9 @@ export class MatrixTextCommand implements ICommand {
     terminal.write("\x1b[2J");
 
     const animate = () => {
-      if (!running) {
+      if (!this.running || this.state === ProcessState.TERMINATED) {
         terminal.write("\x1b[?25h");
         terminal.write("\x1b[2J\x1b[H");
-        dataHandler.dispose();
         return;
       }
 
@@ -186,7 +204,7 @@ export class MatrixTextCommand implements ICommand {
 
     return new Promise<void>((resolve) => {
       const checkRunning = setInterval(() => {
-        if (!running) {
+        if (!this.running || this.state === ProcessState.TERMINATED) {
           clearInterval(checkRunning);
           resolve();
         }

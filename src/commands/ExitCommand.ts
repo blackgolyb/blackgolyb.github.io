@@ -1,13 +1,21 @@
-import { ICommand, CommandContext } from "./ICommand";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext } from "../process/IProcess";
 import { typeText, delay } from "../utils/textAnimations";
+import { Terminal } from "@xterm/xterm";
 
-export class ExitCommand implements ICommand {
-  name = "exit";
-  description = "Exit the system... if you dare";
-  usage = "exit";
+export class ExitCommand extends BaseProcess {
+  constructor() {
+    super("exit");
+  }
 
-  async execute(context: CommandContext): Promise<void> {
-    const terminal = context.terminal.getTerminal();
+  protected async run(context: ProcessContext): Promise<void> {
+    // Get terminal for direct manipulation
+    const terminal = (context.io as any).getTerminal?.() as Terminal;
+
+    if (!terminal) {
+      this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
+      return;
+    }
 
     // Disable input during the sequence
     terminal.write("\r\n");

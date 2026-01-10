@@ -1,14 +1,39 @@
-import { ICommand, CommandContext } from "./ICommand";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext, ProcessState } from "../process/IProcess";
+import { Terminal } from "@xterm/xterm";
 
-export class MatrixCommand implements ICommand {
-  name = "matrix";
-  description = "Enter the Matrix - digital rain effect (Ctrl+C to exit)";
-  usage = "matrix";
+export class MatrixCommand extends BaseProcess {
+  private running: boolean = false;
+  private terminal?: Terminal;
 
-  async execute(context: CommandContext): Promise<void> {
-    const terminal = context.terminal.getTerminal();
-    const cols = terminal.cols;
-    const rows = terminal.rows;
+  constructor() {
+    super("matrix");
+  }
+
+  isInteractive(): boolean {
+    return true;
+  }
+
+  onInput(data: string): void {
+    // Ctrl+C to exit
+    if (data.charCodeAt(0) === 3) {
+      this.running = false;
+      this.terminate();
+    }
+  }
+
+  protected async run(context: ProcessContext): Promise<void> {
+    // We need direct access to terminal for canvas manipulation
+    // This is a temporary workaround until we have better terminal abstraction
+    this.terminal = (context.io as any).getTerminal?.();
+
+    if (!this.terminal) {
+      this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
+      return;
+    }
+
+    const cols = this.terminal.cols;
+    const rows = this.terminal.rows;
 
     // Matrix characters (katakana, latin, numbers, symbols)
     const chars =
@@ -32,34 +57,22 @@ export class MatrixCommand implements ICommand {
       });
     }
 
-    let running = true;
-    let frame = 0;
-
-    // Handle Ctrl+C to exit
-    const dataHandler = terminal.onData((data) => {
-      if (data.charCodeAt(0) === 3) {
-        // Ctrl+C
-        running = false;
-      }
-    });
+    this.running = true;
 
     // Hide cursor
-    terminal.write("\x1b[?25l");
+    this.terminal.write("\x1b[?25l");
 
     // Clear screen
-    terminal.write("\x1b[2J");
+    this.terminal.write("\x1b[2J");
 
     const animate = () => {
-      if (!running) {
+      if (!this.running || this.state === ProcessState.TERMINATED) {
         // Show cursor
-        terminal.write("\x1b[?25h");
+        this.terminal!.write("\x1b[?25h");
         // Clear screen
-        terminal.write("\x1b[2J\x1b[H");
-        dataHandler.dispose();
+        this.terminal!.write("\x1b[2J\x1b[H");
         return;
       }
-
-      frame++;
 
       // Update every column
       for (let col = 0; col < cols; col++) {
@@ -92,36 +105,36 @@ export class MatrixCommand implements ICommand {
           const y = Math.floor(column.y - i);
           if (y >= 0 && y < rows) {
             // Position cursor
-            terminal.write(`\x1b[${y + 1};${col + 1}H`);
+            this.terminal!.write(`\x1b[${y + 1};${col + 1}H`);
 
             // Color based on position in trail
             if (i === 0) {
               // Head - bright white
-              terminal.write("\x1b[97m");
+              this.terminal!.write("\x1b[97m");
             } else if (i < 3) {
               // Near head - bright green
-              terminal.write("\x1b[92m");
+              this.terminal!.write("\x1b[92m");
             } else if (i < column.length / 2) {
               // Middle - normal green
-              terminal.write("\x1b[32m");
+              this.terminal!.write("\x1b[32m");
             } else {
               // Tail - dark green
-              terminal.write("\x1b[38;5;22m");
+              this.terminal!.write("\x1b[38;5;22m");
             }
 
-            terminal.write(column.chars[i]);
+            this.terminal!.write(column.chars[i]);
           }
         }
 
         // Fade out old characters
         const fadeY = Math.floor(column.y - column.length);
         if (fadeY >= 0 && fadeY < rows && Math.random() < 0.3) {
-          terminal.write(`\x1b[${fadeY + 1};${col + 1}H `);
+          this.terminal!.write(`\x1b[${fadeY + 1};${col + 1}H `);
         }
       }
 
       // Reset color
-      terminal.write("\x1b[0m");
+      this.terminal!.write("\x1b[0m");
 
       // Continue animation
       setTimeout(animate, 50);
@@ -133,7 +146,7 @@ export class MatrixCommand implements ICommand {
     // Return promise that resolves when animation stops
     return new Promise<void>((resolve) => {
       const checkRunning = setInterval(() => {
-        if (!running) {
+        if (!this.running || this.state === ProcessState.TERMINATED) {
           clearInterval(checkRunning);
           resolve();
         }

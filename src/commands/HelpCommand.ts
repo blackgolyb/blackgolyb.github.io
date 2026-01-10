@@ -1,44 +1,38 @@
-import { ICommand, CommandContext } from "./ICommand";
-import { CommandRegistry } from "./CommandRegistry";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext } from "../process/IProcess";
 
-export class HelpCommand implements ICommand {
-  name = "help";
-  description = "Display available commands";
-  usage = "help [command]";
+export class HelpCommand extends BaseProcess {
+  private commandNames: string[];
 
-  constructor(private registry: CommandRegistry) {}
+  constructor(commandNames: string[]) {
+    super("help");
+    this.commandNames = commandNames;
+  }
 
-  async execute(context: CommandContext): Promise<void> {
-    const { args, terminal } = context;
+  protected async run(_context: ProcessContext): Promise<void> {
+    this.writeLine("\x1b[32mAvailable Commands:\x1b[0m");
+    this.writeLine("");
 
-    if (args.length > 0) {
-      const commandName = args[0];
-      const command = this.registry.get(commandName);
+    const commands: Record<string, string> = {
+      help: "Show this help message",
+      clear: "Clear the terminal screen",
+      echo: "Display a line of text",
+      matrix: "Enter the Matrix - digital rain effect",
+      mtext: "Display text with Matrix effect",
+      demo: "Showcase terminal text animations",
+      exit: "Exit the system (with dramatic effect)",
+    };
 
-      if (!command) {
-        terminal.writeLine(`\x1b[31mCommand '${commandName}' not found\x1b[0m`);
-        return;
-      }
+    const maxLength = Math.max(...this.commandNames.map((cmd) => cmd.length));
 
-      terminal.writeLine(`\x1b[32m${command.name}\x1b[0m`);
-      terminal.writeLine(`  ${command.description}`);
-      terminal.writeLine(`\x1b[33mUsage:\x1b[0m ${command.usage}`);
-    } else {
-      terminal.writeLine("\x1b[32mAvailable commands:\x1b[0m");
-      terminal.writeLine("");
-
-      const commands = this.registry.getAll();
-      const maxNameLength = Math.max(...commands.map((cmd) => cmd.name.length));
-
-      commands.forEach((cmd) => {
-        const padding = " ".repeat(maxNameLength - cmd.name.length + 2);
-        terminal.writeLine(
-          `  \x1b[33m${cmd.name}\x1b[0m${padding}${cmd.description}`,
-        );
-      });
-
-      terminal.writeLine("");
-      terminal.writeLine("Type 'help <command>' for detailed information");
+    for (const cmd of this.commandNames.sort()) {
+      const description = commands[cmd] || "No description available";
+      const padding = " ".repeat(maxLength - cmd.length + 2);
+      this.writeLine(`  \x1b[36m${cmd}\x1b[0m${padding}${description}`);
     }
+
+    this.writeLine("");
+    this.writeLine("Use Ctrl+C to interrupt running programs");
+    this.writeLine("Use Tab for command autocompletion");
   }
 }

@@ -1,11 +1,12 @@
-import { ICommand, CommandContext } from "./ICommand";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext } from "../process/IProcess";
 
-export class ClearCommand implements ICommand {
-  name = "clear";
-  description = "Clear the terminal screen";
-  usage = "clear";
+export class ClearCommand extends BaseProcess {
+  constructor() {
+    super("clear");
+  }
 
-  async execute(context: CommandContext): Promise<void> {
-    context.terminal.clear();
+  protected async run(_context: ProcessContext): Promise<void> {
+    this.clear();
   }
 }

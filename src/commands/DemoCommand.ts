@@ -1,4 +1,6 @@
-import { ICommand, CommandContext } from "./ICommand";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext } from "../process/IProcess";
+import { Terminal } from "@xterm/xterm";
 import {
   printLines,
   typeText,
@@ -12,13 +14,19 @@ import {
   delay,
 } from "../utils/textAnimations";
 
-export class DemoCommand implements ICommand {
-  name = "demo";
-  description = "Showcase terminal text animation effects";
-  usage = "demo";
+export class DemoCommand extends BaseProcess {
+  constructor() {
+    super("demo");
+  }
 
-  async execute(context: CommandContext): Promise<void> {
-    const terminal = context.terminal.getTerminal();
+  protected async run(context: ProcessContext): Promise<void> {
+    // Get terminal for animations
+    const terminal = (context.io as any).getTerminal?.() as Terminal;
+
+    if (!terminal) {
+      this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
+      return;
+    }
 
     terminal.write("\r\n");
 

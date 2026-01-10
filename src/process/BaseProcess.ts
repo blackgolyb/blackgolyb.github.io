@@ -49,7 +49,7 @@ export abstract class BaseProcess implements IProcess {
    */
   protected abstract run(context: ProcessContext): Promise<void>;
 
-  onInput(data: string): void {
+  onInput(_data: string): void {
     // Default: do nothing with input
     // Override in subclasses that need input handling
   }

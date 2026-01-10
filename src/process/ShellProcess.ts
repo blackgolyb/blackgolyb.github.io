@@ -8,7 +8,7 @@ import { ProcessManager } from "./ProcessManager";
 export class ShellProcess implements IProcess {
   private pid: number;
   private state: ProcessState;
-  private context?: ProcessContext;
+
   private io?: ProcessIO;
   private processManager?: ProcessManager;
 
@@ -53,7 +53,6 @@ export class ShellProcess implements IProcess {
   }
 
   async start(context: ProcessContext): Promise<void> {
-    this.context = context;
     this.io = context.io;
     this.state = ProcessState.RUNNING;
     this.processManager = new ProcessManager(context.io);
