@@ -24,6 +24,7 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
   private container: HTMLElement;
   private ready: boolean = false;
   private shell: ShellProcess;
+  private inputCallback?: (data: string) => void;
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
@@ -106,12 +107,8 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
     this.terminal.write(data);
   }
 
-  writeLine(data: string): void {
-    this.terminal.write(data + "\r\n");
-  }
-
-  clear(): void {
-    this.terminal.clear();
+  onInput(callback: (data: string) => void): void {
+    this.inputCallback = callback;
   }
 
   // For commands that need direct terminal access (temporary)
@@ -187,9 +184,9 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
       data = key;
     }
 
-    // Send data to shell process
-    if (data) {
-      this.shell.onInput(data);
+    // Send data through input callback
+    if (data && this.inputCallback) {
+      this.inputCallback(data);
     }
   }
 }

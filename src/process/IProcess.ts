@@ -5,8 +5,7 @@
 
 export interface ProcessIO {
   write(data: string): void;
-  writeLine(data: string): void;
-  clear(): void;
+  onInput(callback: (data: string) => void): void;
 }
 
 export interface ProcessContext {

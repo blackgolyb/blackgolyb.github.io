@@ -57,6 +57,9 @@ export class ShellProcess implements IProcess {
     this.state = ProcessState.RUNNING;
     this.processManager = new ProcessManager(context.io);
 
+    // Register input handler
+    context.io.onInput((data) => this.onInput(data));
+
     this.showWelcome();
     this.showPrompt();
     this.startCursorBlink();
@@ -70,8 +73,7 @@ export class ShellProcess implements IProcess {
   onInput(data: string): void {
     // Check if a command process is running
     if (this.processManager?.hasForegroundProcess()) {
-      // Route input to the running process
-      this.processManager.handleInput(data);
+      // Input is routed via ProcessIO callback in ProcessManager
       return;
     }
 
@@ -100,7 +102,7 @@ export class ShellProcess implements IProcess {
     }
     // Ctrl+L (clear)
     else if (code === 12) {
-      this.io?.clear();
+      this.io?.write("\x1b[2J\x1b[H");
       this.showPrompt();
       this.redrawLine();
     }
@@ -158,18 +160,18 @@ export class ShellProcess implements IProcess {
   }
 
   private showWelcome(): void {
-    this.io?.writeLine(
-      "\x1b[32m╔════════════════════════════════════════╗\x1b[0m",
+    this.io?.write(
+      "\x1b[32m╔════════════════════════════════════════╗\x1b[0m\r\n",
     );
-    this.io?.writeLine(
-      "\x1b[32m║     Cool Retro Term - Web Edition     ║\x1b[0m",
+    this.io?.write(
+      "\x1b[32m║     Cool Retro Term - Web Edition     ║\x1b[0m\r\n",
     );
-    this.io?.writeLine(
-      "\x1b[32m╚════════════════════════════════════════╝\x1b[0m",
+    this.io?.write(
+      "\x1b[32m╚════════════════════════════════════════╝\x1b[0m\r\n",
     );
-    this.io?.writeLine("");
-    this.io?.writeLine("Type \x1b[33mhelp\x1b[0m to see available commands");
-    this.io?.writeLine("");
+    this.io?.write("\r\n");
+    this.io?.write("Type \x1b[33mhelp\x1b[0m to see available commands\r\n");
+    this.io?.write("\r\n");
   }
 
   private showPrompt(): void {
@@ -210,8 +212,8 @@ export class ShellProcess implements IProcess {
     const commandFactory = this.commandRegistry.get(commandName);
 
     if (!commandFactory) {
-      this.io?.writeLine(`\x1b[31mCommand not found: ${commandName}\x1b[0m`);
-      this.io?.writeLine(`Type 'help' to see available commands`);
+      this.io?.write(`\x1b[31mCommand not found: ${commandName}\x1b[0m\r\n`);
+      this.io?.write(`Type 'help' to see available commands\r\n`);
       return;
     }
 
@@ -222,7 +224,7 @@ export class ShellProcess implements IProcess {
       // Spawn and run the process
       await this.processManager?.spawn(process, args, {});
     } catch (error) {
-      this.io?.writeLine(`\x1b[31mError: ${error}\x1b[0m`);
+      this.io?.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
     }
   }
 
@@ -280,7 +282,7 @@ export class ShellProcess implements IProcess {
         this.redrawLine();
       } else if (matches.length > 1) {
         this.io?.write("\r\n");
-        this.io?.writeLine(matches.join("  "));
+        this.io?.write(matches.join("  ") + "\r\n");
         this.showPrompt();
         this.redrawLine();
       }

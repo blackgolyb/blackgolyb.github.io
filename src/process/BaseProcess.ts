@@ -38,7 +38,7 @@ export abstract class BaseProcess implements IProcess {
       await this.run(context);
       this.state = ProcessState.TERMINATED;
     } catch (error) {
-      this.io?.writeLine(`\x1b[31mError: ${error}\x1b[0m`);
+      this.io?.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
       this.state = ProcessState.TERMINATED;
       throw error;
     }
@@ -88,17 +88,17 @@ export abstract class BaseProcess implements IProcess {
   }
 
   /**
-   * Helper: Write line to process output
+   * Helper: Write line to process output (convenience wrapper)
    */
   protected writeLine(data: string): void {
-    this.io?.writeLine(data);
+    this.io?.write(data + "\r\n");
   }
 
   /**
-   * Helper: Clear output
+   * Helper: Clear output (convenience wrapper)
    */
   protected clear(): void {
-    this.io?.clear();
+    this.io?.write("\x1b[2J\x1b[H");
   }
 
   /**

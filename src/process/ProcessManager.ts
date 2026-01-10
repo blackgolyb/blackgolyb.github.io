@@ -28,10 +28,23 @@ export class ProcessManager {
     // Set as foreground process
     this.foregroundProcess = process;
 
+    // Create ProcessIO with input callback routed to this process
+    const processIO: ProcessIO = {
+      write: (data: string) => this.io.write(data),
+      onInput: (callback: (data: string) => void) => {
+        // Register callback to route input to this process
+        this.io.onInput((data: string) => {
+          if (this.foregroundProcess === process && process.acceptsInput()) {
+            callback(data);
+          }
+        });
+      },
+    };
+
     try {
       // Start the process
       await process.start({
-        io: this.io,
+        io: processIO,
         args,
         env,
       });
@@ -45,15 +58,6 @@ export class ProcessManager {
       if (process.getState() === ProcessState.TERMINATED) {
         this.processes.delete(process.getPid());
       }
-    }
-  }
-
-  /**
-   * Route input to the appropriate process
-   */
-  handleInput(data: string): void {
-    if (this.foregroundProcess && this.foregroundProcess.acceptsInput()) {
-      this.foregroundProcess.onInput(data);
     }
   }
 
