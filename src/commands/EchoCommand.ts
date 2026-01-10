@@ -1,12 +1,18 @@
-import { ICommand, CommandContext } from "./ICommand";
+import { BaseProcess } from "../process/BaseProcess";
+import { ProcessContext } from "../process/IProcess";
 
-export class EchoCommand implements ICommand {
-  name = "echo";
-  description = "Display a line of text";
-  usage = "echo [text...]";
+export class EchoCommand extends BaseProcess {
+  constructor() {
+    super("echo");
+  }
 
-  async execute(context: CommandContext): Promise<void> {
-    const { args, terminal } = context;
-    terminal.writeLine(args.join(" "));
+  protected async run(context: ProcessContext): Promise<void> {
+    const text = context.args.join(" ");
+
+    if (text.length === 0) {
+      this.writeLine("");
+    } else {
+      this.writeLine(text);
+    }
   }
 }
