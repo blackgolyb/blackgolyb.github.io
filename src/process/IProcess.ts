@@ -3,9 +3,34 @@
  * Inspired by Unix process model
  */
 
+import { Stream, ReadableStream, WritableStream } from "../utils/stream";
+
 export interface ProcessIO {
-  write(data: string): void;
-  onInput(callback: (data: string) => void): void;
+  /**
+   * Standard input stream (readable by the process)
+   */
+  stdin: ReadableStream;
+
+  /**
+   * Standard output stream (writable by the process)
+   */
+  stdout: WritableStream;
+
+  /**
+   * Standard error stream (writable by the process)
+   */
+  stderr: WritableStream;
+}
+
+/**
+ * Create a new ProcessIO instance with separate stdin, stdout, and stderr streams
+ */
+export function createProcessIO(): ProcessIO {
+  return {
+    stdin: new Stream(),
+    stdout: new Stream(),
+    stderr: new Stream(),
+  };
 }
 
 export interface ProcessContext {

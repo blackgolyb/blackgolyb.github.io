@@ -1,5 +1,6 @@
 import { IProcess, ProcessContext, ProcessState, ProcessIO } from "./IProcess";
 import { ProcessManager } from "./ProcessManager";
+import { Stream } from "../utils/stream";
 
 /**
  * ShellProcess - A special long-running process that manages commands
@@ -58,7 +59,7 @@ export class ShellProcess implements IProcess {
     this.processManager = new ProcessManager(context.io);
 
     // Register input handler
-    context.io.onInput((data) => this.onInput(data));
+    (context.io.stdin as Stream).onData((data) => this.onInput(data));
 
     this.showWelcome();
     this.showPrompt();
@@ -102,7 +103,7 @@ export class ShellProcess implements IProcess {
     }
     // Ctrl+L (clear)
     else if (code === 12) {
-      this.io?.write("\x1b[2J\x1b[H");
+      this.io?.stdout.write("\x1b[2J\x1b[H");
       this.showPrompt();
       this.redrawLine();
     }
@@ -160,26 +161,28 @@ export class ShellProcess implements IProcess {
   }
 
   private showWelcome(): void {
-    this.io?.write(
+    this.io?.stdout.write(
       "\x1b[32m╔════════════════════════════════════════╗\x1b[0m\r\n",
     );
-    this.io?.write(
+    this.io?.stdout.write(
       "\x1b[32m║     Cool Retro Term - Web Edition     ║\x1b[0m\r\n",
     );
-    this.io?.write(
+    this.io?.stdout.write(
       "\x1b[32m╚════════════════════════════════════════╝\x1b[0m\r\n",
     );
-    this.io?.write("\r\n");
-    this.io?.write("Type \x1b[33mhelp\x1b[0m to see available commands\r\n");
-    this.io?.write("\r\n");
+    this.io?.stdout.write("\r\n");
+    this.io?.stdout.write(
+      "Type \x1b[33mhelp\x1b[0m to see available commands\r\n",
+    );
+    this.io?.stdout.write("\r\n");
   }
 
   private showPrompt(): void {
-    this.io?.write(this.promptString);
+    this.io?.stdout.write(this.promptString);
   }
 
   private async handleEnter(): Promise<void> {
-    this.io?.write("\r\n");
+    this.io?.stdout.write("\r\n");
 
     const line = this.currentLine.trim();
 
@@ -212,8 +215,10 @@ export class ShellProcess implements IProcess {
     const commandFactory = this.commandRegistry.get(commandName);
 
     if (!commandFactory) {
-      this.io?.write(`\x1b[31mCommand not found: ${commandName}\x1b[0m\r\n`);
-      this.io?.write(`Type 'help' to see available commands\r\n`);
+      this.io?.stdout.write(
+        `\x1b[31mCommand not found: ${commandName}\x1b[0m\r\n`,
+      );
+      this.io?.stdout.write(`Type 'help' to see available commands\r\n`);
       return;
     }
 
@@ -224,7 +229,7 @@ export class ShellProcess implements IProcess {
       // Spawn and run the process
       await this.processManager?.spawn(process, args, {});
     } catch (error) {
-      this.io?.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
+      this.io?.stdout.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
     }
   }
 
@@ -281,8 +286,8 @@ export class ShellProcess implements IProcess {
         this.cursorPosition = this.currentLine.length;
         this.redrawLine();
       } else if (matches.length > 1) {
-        this.io?.write("\r\n");
-        this.io?.write(matches.join("  ") + "\r\n");
+        this.io?.stdout.write("\r\n");
+        this.io?.stdout.write(matches.join("  ") + "\r\n");
         this.showPrompt();
         this.redrawLine();
       }
@@ -290,7 +295,7 @@ export class ShellProcess implements IProcess {
   }
 
   private handleInterrupt(): void {
-    this.io?.write("^C\r\n");
+    this.io?.stdout.write("^C\r\n");
     this.currentLine = "";
     this.cursorPosition = 0;
     this.showPrompt();
@@ -344,14 +349,14 @@ export class ShellProcess implements IProcess {
   private handleLeftArrow(): void {
     if (this.cursorPosition > 0) {
       this.cursorPosition--;
-      this.io?.write("\x1b[D");
+      this.io?.stdout.write("\x1b[D");
     }
   }
 
   private handleRightArrow(): void {
     if (this.cursorPosition < this.currentLine.length) {
       this.cursorPosition++;
-      this.io?.write("\x1b[C");
+      this.io?.stdout.write("\x1b[C");
     }
   }
 
@@ -373,7 +378,7 @@ export class ShellProcess implements IProcess {
 
   private handleHome(): void {
     this.cursorPosition = 0;
-    this.io?.write("\r" + this.promptString);
+    this.io?.stdout.write("\r" + this.promptString);
   }
 
   private handleEnd(): void {
@@ -403,22 +408,22 @@ export class ShellProcess implements IProcess {
     );
 
     // Clear line and write prompt + content
-    this.io?.write("\r\x1b[K" + this.promptString);
+    this.io?.stdout.write("\r\x1b[K" + this.promptString);
 
     if (this.cursorPosition < this.currentLine.length) {
       // Cursor in middle of line
-      this.io?.write(beforeCursor);
+      this.io?.stdout.write(beforeCursor);
       if (this.cursorVisible) {
-        this.io?.write(`\x1b[7m${atCursor}\x1b[27m`); // Reverse video for cursor
+        this.io?.stdout.write(`\x1b[7m${atCursor}\x1b[27m`); // Reverse video for cursor
       } else {
-        this.io?.write(atCursor);
+        this.io?.stdout.write(atCursor);
       }
-      this.io?.write(afterCursor);
+      this.io?.stdout.write(afterCursor);
     } else {
       // Cursor at end of line
-      this.io?.write(highlightedLine);
+      this.io?.stdout.write(highlightedLine);
       if (this.cursorVisible) {
-        this.io?.write("\x1b[7m \x1b[27m"); // Block cursor at end
+        this.io?.stdout.write("\x1b[7m \x1b[27m"); // Block cursor at end
       }
     }
   }

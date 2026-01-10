@@ -3,7 +3,8 @@ import { CanvasAddon } from "@xterm/addon-canvas";
 import "@xterm/xterm/css/xterm.css";
 import { ITerminalSource } from "../core/ITerminalSource";
 import { ShellProcess } from "../process/ShellProcess";
-import { ProcessIO } from "../process/IProcess";
+import { ProcessIO, createProcessIO } from "../process/IProcess";
+import { Stream } from "../utils/stream";
 
 // Commands
 import { HelpCommand } from "../commands/HelpCommand";
@@ -18,13 +19,13 @@ import { ExitCommand } from "../commands/ExitCommand";
  * ProcessTerminalAdapter - Terminal adapter using process-based architecture
  * Manages xterm.js terminal and runs ShellProcess as the main process
  */
-export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
+export class ProcessTerminalAdapter implements ITerminalSource {
   private terminal: Terminal;
   private canvasAddon: CanvasAddon;
   private container: HTMLElement;
   private ready: boolean = false;
   private shell: ShellProcess;
-  private inputCallback?: (data: string) => void;
+  private io: ProcessIO;
 
   constructor(containerId: string) {
     const element = document.getElementById(containerId);
@@ -49,6 +50,24 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
     this.canvasAddon = new CanvasAddon();
     this.terminal.loadAddon(this.canvasAddon);
 
+    // Create ProcessIO with streams
+    this.io = createProcessIO();
+
+    // Connect stdout to terminal
+    (this.io.stdout as Stream).onData((data) => {
+      this.terminal.write(data);
+    });
+
+    // Connect stderr to terminal (with red color)
+    (this.io.stderr as Stream).onData((data) => {
+      this.terminal.write(data);
+    });
+
+    // Connect terminal input to stdin
+    this.terminal.onData((data) => {
+      (this.io.stdin as Stream).write(data);
+    });
+
     // Create and configure shell process
     this.shell = new ShellProcess();
     this.registerCommands();
@@ -56,7 +75,7 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
     // Start shell process
     setTimeout(() => {
       this.shell.start({
-        io: this,
+        io: this.io,
         args: [],
         env: {},
       });
@@ -100,15 +119,6 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
     this.shell.registerCommand("mtext", () => new MatrixTextCommand());
     this.shell.registerCommand("demo", () => new DemoCommand());
     this.shell.registerCommand("exit", () => new ExitCommand());
-  }
-
-  // ProcessIO implementation
-  write(data: string): void {
-    this.terminal.write(data);
-  }
-
-  onInput(callback: (data: string) => void): void {
-    this.inputCallback = callback;
   }
 
   // For commands that need direct terminal access (temporary)
@@ -184,9 +194,9 @@ export class ProcessTerminalAdapter implements ITerminalSource, ProcessIO {
       data = key;
     }
 
-    // Send data through input callback
-    if (data && this.inputCallback) {
-      this.inputCallback(data);
+    // Send data to stdin stream
+    if (data) {
+      (this.io.stdin as Stream).write(data);
     }
   }
 }

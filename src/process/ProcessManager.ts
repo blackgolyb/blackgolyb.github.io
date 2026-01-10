@@ -1,4 +1,5 @@
-import { IProcess, ProcessState, ProcessIO } from "./IProcess";
+import { IProcess, ProcessState, ProcessIO, createProcessIO } from "./IProcess";
+import { Stream } from "../utils/stream";
 
 /**
  * ProcessManager - manages process lifecycle and I/O routing
@@ -28,18 +29,25 @@ export class ProcessManager {
     // Set as foreground process
     this.foregroundProcess = process;
 
-    // Create ProcessIO with input callback routed to this process
-    const processIO: ProcessIO = {
-      write: (data: string) => this.io.write(data),
-      onInput: (callback: (data: string) => void) => {
-        // Register callback to route input to this process
-        this.io.onInput((data: string) => {
-          if (this.foregroundProcess === process && process.acceptsInput()) {
-            callback(data);
-          }
-        });
-      },
-    };
+    // Create ProcessIO with streams connected to parent IO
+    const processIO = createProcessIO();
+
+    // Connect process stdout to parent stdout
+    (processIO.stdout as Stream).onData((data) => {
+      this.io.stdout.write(data);
+    });
+
+    // Connect process stderr to parent stderr
+    (processIO.stderr as Stream).onData((data) => {
+      this.io.stderr.write(data);
+    });
+
+    // Route parent stdin to process stdin only when it's in foreground
+    (this.io.stdin as Stream).onData((data) => {
+      if (this.foregroundProcess === process && process.acceptsInput()) {
+        (processIO.stdin as Stream).write(data);
+      }
+    });
 
     try {
       // Start the process
