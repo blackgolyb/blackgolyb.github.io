@@ -2,9 +2,10 @@ import { Terminal } from "@xterm/xterm";
 import { CanvasAddon } from "@xterm/addon-canvas";
 import "@xterm/xterm/css/xterm.css";
 import { ITerminalSource } from "../core/ITerminalSource";
-import { ShellProcess } from "../process/ShellProcess";
 import { ProcessIO, createProcessIO } from "../process/IProcess";
 import { Stream } from "../utils/stream";
+import { InitFactory } from "../process/InitFactory";
+import { ACTIVE_BOOT_CONFIG } from "../config/boot.config";
 
 // Commands
 import { HelpCommand } from "../commands/HelpCommand";
@@ -17,14 +18,13 @@ import { ExitCommand } from "../commands/ExitCommand";
 
 /**
  * ProcessTerminalAdapter - Terminal adapter using process-based architecture
- * Manages xterm.js terminal and runs ShellProcess as the main process
+ * Manages xterm.js terminal and runs InitProcess which manages all other processes
  */
 export class ProcessTerminalAdapter implements ITerminalSource {
   private terminal: Terminal;
   private canvasAddon: CanvasAddon;
   private container: HTMLElement;
   private ready: boolean = false;
-  private shell: ShellProcess;
   private io: ProcessIO;
 
   constructor(containerId: string) {
@@ -68,20 +68,26 @@ export class ProcessTerminalAdapter implements ITerminalSource {
       (this.io.stdin as Stream).write(data);
     });
 
-    // Create and configure shell process
-    this.shell = new ShellProcess();
-    this.registerCommands();
+    // Create and start init process
+    // Init will be responsible for running boot programs and managing shell
+    const initProcess = this.createInitProcess();
 
-    // Start shell process
-    setTimeout(() => {
-      this.shell.start({
-        io: this.io,
-        args: [],
-        env: {},
-      });
-      this.ready = true;
+    // Start init process
+    setTimeout(async () => {
+      try {
+        await initProcess.start({
+          io: this.io,
+          args: [],
+          env: {},
+        });
+      } catch (error) {
+        console.error("Init process failed:", error);
+      }
       this.terminal.focus();
     }, 100);
+
+    // Terminal is ready once init starts
+    this.ready = true;
 
     // Handle window resize
     window.addEventListener("resize", () => {
@@ -100,7 +106,10 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     }, 100);
   }
 
-  private registerCommands(): void {
+  /**
+   * Create and configure the init process
+   */
+  private createInitProcess() {
     const commandNames = [
       "help",
       "clear",
@@ -111,14 +120,20 @@ export class ProcessTerminalAdapter implements ITerminalSource {
       "exit",
     ];
 
-    // Register command factories
-    this.shell.registerCommand("help", () => new HelpCommand(commandNames));
-    this.shell.registerCommand("clear", () => new ClearCommand());
-    this.shell.registerCommand("echo", () => new EchoCommand());
-    this.shell.registerCommand("matrix", () => new MatrixCommand());
-    this.shell.registerCommand("mtext", () => new MatrixTextCommand());
-    this.shell.registerCommand("demo", () => new DemoCommand());
-    this.shell.registerCommand("exit", () => new ExitCommand());
+    // Shell configurator - registers commands when shell is created
+    const shellConfigurator = (shell: any) => {
+      shell.registerCommand("help", () => new HelpCommand(commandNames));
+      shell.registerCommand("clear", () => new ClearCommand());
+      shell.registerCommand("echo", () => new EchoCommand());
+      shell.registerCommand("matrix", () => new MatrixCommand());
+      shell.registerCommand("mtext", () => new MatrixTextCommand());
+      shell.registerCommand("demo", () => new DemoCommand());
+      shell.registerCommand("exit", () => new ExitCommand());
+    };
+
+    // Create init process from boot configuration using factory
+    console.log(`[BOOT] Using: ${ACTIVE_BOOT_CONFIG.name}`);
+    return InitFactory.fromConfig(ACTIVE_BOOT_CONFIG, shellConfigurator);
   }
 
   // For commands that need direct terminal access (temporary)
