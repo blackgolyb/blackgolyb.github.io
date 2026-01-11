@@ -1,17 +1,14 @@
 import { IProcess, ProcessContext, ProcessState, ProcessIO } from "./IProcess";
-import { ProcessManager } from "./ProcessManager";
 import { Stream } from "../utils/stream";
 
-/**
- * ShellProcess - A special long-running process that manages commands
- * Acts as the main interface for user interaction
- */
 export class ShellProcess implements IProcess {
+  static name = "shell";
   private pid: number;
   private state: ProcessState;
 
   private io?: ProcessIO;
-  private processManager?: ProcessManager;
+  private foregroundProcess: IProcess | null = null;
+  private context?: ProcessContext;
 
   private currentLine: string = "";
   private cursorPosition: number = 0;
@@ -21,9 +18,6 @@ export class ShellProcess implements IProcess {
   private promptString: string = "\x1b[32m$\x1b[0m ";
   private cursorVisible: boolean = true;
   private cursorBlinkInterval?: ReturnType<typeof setInterval>;
-
-  // Command registry
-  private commandRegistry: Map<string, () => IProcess> = new Map();
 
   // Escape sequence handlers
   private readonly escapeSequenceHandlers: Record<string, () => void> = {
@@ -54,9 +48,10 @@ export class ShellProcess implements IProcess {
   }
 
   async start(context: ProcessContext): Promise<void> {
+    this.context = context;
     this.io = context.io;
     this.state = ProcessState.RUNNING;
-    this.processManager = new ProcessManager(context.io);
+    this.foregroundProcess = null;
 
     // Register input handler
     (context.io.stdin as Stream).onData((data) => this.onInput(data));
@@ -72,9 +67,7 @@ export class ShellProcess implements IProcess {
   }
 
   onInput(data: string): void {
-    // Check if a command process is running
-    if (this.processManager?.hasForegroundProcess()) {
-      // Input is routed via ProcessIO callback in ProcessManager
+    if (this.foregroundProcess) {
       return;
     }
 
@@ -146,18 +139,8 @@ export class ShellProcess implements IProcess {
     return true;
   }
 
-  /**
-   * Register a command factory
-   */
-  registerCommand(name: string, factory: () => IProcess): void {
-    this.commandRegistry.set(name, factory);
-  }
-
-  /**
-   * Get registered command names
-   */
   getCommandNames(): string[] {
-    return Array.from(this.commandRegistry.keys());
+    return Array.from(this.context?.stdlib.getPrograms().keys() || []);
   }
 
   private showWelcome(): void {
@@ -206,13 +189,17 @@ export class ShellProcess implements IProcess {
   }
 
   private async executeCommand(line: string): Promise<void> {
+    if (!this.context) {
+      throw new Error("Shell context is not available");
+    }
     const parts = line.split(/\s+/).filter((p) => p.length > 0);
     if (parts.length === 0) return;
 
     const commandName = parts[0];
     const args = parts.slice(1);
 
-    const commandFactory = this.commandRegistry.get(commandName);
+    const programs = this.context.stdlib.getPrograms();
+    const commandFactory = programs.get(commandName);
 
     if (!commandFactory) {
       this.io?.stdout.write(
@@ -227,10 +214,29 @@ export class ShellProcess implements IProcess {
       const process = commandFactory();
 
       // Spawn and run the process
-      await this.processManager?.spawn(process, args, {});
+      this.spawn(process, args, {});
     } catch (error) {
       this.io?.stdout.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
     }
+  }
+
+  private spawn(
+    process: IProcess,
+    args: string[] = [],
+    env: Record<string, string> = {},
+  ) {
+    if (!this.context) {
+      throw new Error("Shell context is not available");
+    }
+    const running = process.start({
+      ...this.context,
+      args,
+      env,
+    });
+    running.finally(() => {
+      this.foregroundProcess = null;
+    });
+    this.foregroundProcess = process;
   }
 
   private handleBackspace(): void {
@@ -457,7 +463,7 @@ export class ShellProcess implements IProcess {
 
   private startCursorBlink(): void {
     this.cursorBlinkInterval = setInterval(() => {
-      if (!this.processManager?.hasForegroundProcess()) {
+      if (!this.foregroundProcess) {
         this.cursorVisible = !this.cursorVisible;
         this.redrawLine();
       }

@@ -1,15 +1,10 @@
 import { BaseProcess } from "../process/BaseProcess";
 import { ProcessContext, ProcessState } from "../process/IProcess";
 import { generateAsciiArt } from "../utils/asciiArt";
-import { Terminal } from "@xterm/xterm";
 
 export class MatrixTextCommand extends BaseProcess {
+  static name = "mtext";
   private running: boolean = false;
-  private terminal?: Terminal;
-
-  constructor() {
-    super("mtext");
-  }
 
   isInteractive(): boolean {
     return true;
@@ -32,17 +27,7 @@ export class MatrixTextCommand extends BaseProcess {
 
     const text = context.args.join(" ");
 
-    // We need direct access to terminal for canvas manipulation
-    this.terminal = (context.io as any).getTerminal?.();
-
-    if (!this.terminal) {
-      this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
-      return;
-    }
-
-    const terminal = this.terminal;
-    const cols = terminal.cols;
-    const rows = terminal.rows;
+    const { cols, rows } = context.stdlib.getWindowSize();
 
     // Generate ASCII art
     const artLines = generateAsciiArt(text);
@@ -80,15 +65,15 @@ export class MatrixTextCommand extends BaseProcess {
     const revealDuration = 150; // frames to fully reveal text
 
     // Hide cursor
-    terminal.write("\x1b[?25l");
+    this.write("\x1b[?25l");
 
     // Clear screen
-    terminal.write("\x1b[2J");
+    this.write("\x1b[2J");
 
     const animate = () => {
       if (!this.running || this.state === ProcessState.TERMINATED) {
-        terminal.write("\x1b[?25h");
-        terminal.write("\x1b[2J\x1b[H");
+        this.write("\x1b[?25h");
+        this.write("\x1b[2J\x1b[H");
         return;
       }
 
@@ -137,27 +122,27 @@ export class MatrixTextCommand extends BaseProcess {
 
               // Only draw text characters (not spaces)
               if (artChar !== " ") {
-                terminal.write(`\x1b[${y + 1};${col + 1}H`);
-                terminal.write("\x1b[97m"); // White for text
-                terminal.write(artChar);
+                this.write(`\x1b[${y + 1};${col + 1}H`);
+                this.write("\x1b[97m"); // White for text
+                this.write(artChar);
                 continue;
               }
             }
 
             // Draw normal rain
-            terminal.write(`\x1b[${y + 1};${col + 1}H`);
+            this.write(`\x1b[${y + 1};${col + 1}H`);
 
             if (i === 0) {
-              terminal.write("\x1b[97m");
+              this.write("\x1b[97m");
             } else if (i < 3) {
-              terminal.write("\x1b[92m");
+              this.write("\x1b[92m");
             } else if (i < column.length / 2) {
-              terminal.write("\x1b[32m");
+              this.write("\x1b[32m");
             } else {
-              terminal.write("\x1b[38;5;22m");
+              this.write("\x1b[38;5;22m");
             }
 
-            terminal.write(column.chars[i]);
+            this.write(column.chars[i]);
           }
         }
 
@@ -171,7 +156,7 @@ export class MatrixTextCommand extends BaseProcess {
             col < startCol + artWidth;
 
           if (!isTextPos) {
-            terminal.write(`\x1b[${fadeY + 1};${col + 1}H `);
+            this.write(`\x1b[${fadeY + 1};${col + 1}H `);
           }
         }
       }
@@ -186,16 +171,16 @@ export class MatrixTextCommand extends BaseProcess {
               const screenRow = startRow + row;
               const screenCol = startCol + col;
               if (Math.random() < 0.1) {
-                terminal.write(`\x1b[${screenRow + 1};${screenCol + 1}H`);
-                terminal.write("\x1b[92m"); // Bright green
-                terminal.write(artChar);
+                this.write(`\x1b[${screenRow + 1};${screenCol + 1}H`);
+                this.write("\x1b[92m"); // Bright green
+                this.write(artChar);
               }
             }
           }
         }
       }
 
-      terminal.write("\x1b[0m");
+      this.write("\x1b[0m");
 
       setTimeout(animate, 50);
     };

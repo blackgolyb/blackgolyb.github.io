@@ -4,9 +4,7 @@ import { typeText, delay } from "../utils/textAnimations";
 import { Terminal } from "@xterm/xterm";
 
 export class ExitCommand extends BaseProcess {
-  constructor() {
-    super("exit");
-  }
+  static name = "exit";
 
   protected async run(context: ProcessContext): Promise<void> {
     // Get terminal for direct manipulation

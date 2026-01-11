@@ -1,6 +1,5 @@
 import { BaseProcess } from "../process/BaseProcess";
 import { ProcessContext } from "../process/IProcess";
-import { Terminal } from "@xterm/xterm";
 import {
   printLines,
   typeText,
@@ -15,96 +14,87 @@ import {
 } from "../utils/textAnimations";
 
 export class DemoCommand extends BaseProcess {
-  constructor() {
-    super("demo");
-  }
+  static name = "demo";
 
   protected async run(context: ProcessContext): Promise<void> {
-    // Get terminal for animations
-    const terminal = (context.io as any).getTerminal?.() as Terminal;
-
-    if (!terminal) {
-      this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
-      return;
-    }
-
-    terminal.write("\r\n");
+    const sdtout = context.io.stdout;
+    sdtout.write("\r\n");
 
     // Title
     await printBox(
-      terminal,
+      sdtout,
       ["   TEXT ANIMATION SHOWCASE   ", "   Press Ctrl+C to skip   "],
       10,
     );
 
-    terminal.write("\r\n");
+    sdtout.write("\r\n");
     await delay(500);
 
     // 1. Basic typing effect
-    await printColoredText(terminal, "1. Basic Typing Effect:", "\x1b[36m", 20);
-    terminal.write("\r\n");
-    await typeText(terminal, "   Hello, World! This is a typing effect.", 40);
-    terminal.write("\r\n\r\n");
+    await printColoredText(sdtout, "1. Basic Typing Effect:", "\x1b[36m", 20);
+    sdtout.write("\r\n");
+    await typeText(sdtout, "   Hello, World! This is a typing effect.", 40);
+    sdtout.write("\r\n\r\n");
     await delay(800);
 
     // 2. Rainbow text
-    await printColoredText(terminal, "2. Rainbow Text:", "\x1b[36m", 20);
-    terminal.write("\r\n   ");
-    await printRainbowText(terminal, "Colors of the rainbow!", 50);
-    terminal.write("\r\n\r\n");
+    await printColoredText(sdtout, "2. Rainbow Text:", "\x1b[36m", 20);
+    sdtout.write("\r\n   ");
+    await printRainbowText(sdtout, "Colors of the rainbow!", 50);
+    sdtout.write("\r\n\r\n");
     await delay(800);
 
     // 3. Glitch effect
-    await printColoredText(terminal, "3. Glitch Effect:", "\x1b[36m", 20);
-    terminal.write("\r\n   ");
-    await printGlitchText(terminal, "SYSTEM ERROR DETECTED", 5);
-    terminal.write("\r\n\r\n");
+    await printColoredText(sdtout, "3. Glitch Effect:", "\x1b[36m", 20);
+    sdtout.write("\r\n   ");
+    await printGlitchText(sdtout, "SYSTEM ERROR DETECTED", 5);
+    sdtout.write("\r\n\r\n");
     await delay(800);
 
     // 4. Progress bar
-    await printColoredText(terminal, "4. Progress Bar:", "\x1b[36m", 20);
-    terminal.write("\r\n   ");
-    await printProgressBar(terminal, 2000, 30, "Loading");
-    terminal.write("\r\n");
+    await printColoredText(sdtout, "4. Progress Bar:", "\x1b[36m", 20);
+    sdtout.write("\r\n   ");
+    await printProgressBar(sdtout, 2000, 30, "Loading");
+    sdtout.write("\r\n");
     await delay(500);
 
     // 5. Spinner
-    await printColoredText(terminal, "5. Spinner Animation:", "\x1b[36m", 20);
-    terminal.write("\r\n   ");
-    await printSpinner(terminal, 2000, "Processing data");
-    await printColoredText(terminal, "   ✓ Complete!\r\n", "\x1b[32m", 0);
-    terminal.write("\r\n");
+    await printColoredText(sdtout, "5. Spinner Animation:", "\x1b[36m", 20);
+    sdtout.write("\r\n   ");
+    await printSpinner(sdtout, 2000, "Processing data");
+    await printColoredText(sdtout, "   ✓ Complete!\r\n", "\x1b[32m", 0);
+    sdtout.write("\r\n");
     await delay(500);
 
     // 6. ASCII Art
-    await printColoredText(terminal, "6. ASCII Art:", "\x1b[36m", 20);
-    terminal.write("\r\n");
+    await printColoredText(sdtout, "6. ASCII Art:", "\x1b[36m", 20);
+    sdtout.write("\r\n");
     const art = [
       "    ╔══════════════════╗",
       "    ║   COOL RETRO     ║",
-      "    ║    TERMINAL      ║",
+      "    ║    sdtout      ║",
       "    ╚══════════════════╝",
     ];
-    await printAsciiArt(terminal, art, "\x1b[32m", 15);
-    terminal.write("\r\n");
+    await printAsciiArt(sdtout, art, "\x1b[32m", 15);
+    sdtout.write("\r\n");
     await delay(800);
 
     // 7. Multi-line typing
-    await printColoredText(terminal, "7. Multi-line Text:", "\x1b[36m", 20);
-    terminal.write("\r\n");
+    await printColoredText(sdtout, "7. Multi-line Text:", "\x1b[36m", 20);
+    sdtout.write("\r\n");
     const lines = [
       "   > Initializing systems...",
       "   > Loading modules...",
       "   > Connecting to server...",
       "   > Ready!",
     ];
-    await printLines(terminal, lines, 30, 200);
-    terminal.write("\r\n");
+    await printLines(sdtout, lines, 30, 200);
+    sdtout.write("\r\n");
     await delay(800);
 
     // Final message
     await printBox(
-      terminal,
+      sdtout,
       [
         "     Animation Demo Complete!     ",
         " Use these effects in your commands ",
@@ -112,6 +102,6 @@ export class DemoCommand extends BaseProcess {
       10,
     );
 
-    terminal.write("\r\n");
+    sdtout.write("\r\n");
   }
 }

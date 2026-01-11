@@ -2,37 +2,81 @@ import { Terminal } from "@xterm/xterm";
 import { CanvasAddon } from "@xterm/addon-canvas";
 import "@xterm/xterm/css/xterm.css";
 import { ITerminalSource } from "../core/ITerminalSource";
-import { ProcessIO, createProcessIO } from "../process/IProcess";
+import {
+  IProcess,
+  ProcessContext,
+  ProcessIO,
+  ProgramRegistry,
+  Signal,
+  SignalsEvents,
+} from "../process/IProcess";
 import { Stream } from "../utils/stream";
-import { InitFactory } from "../process/InitFactory";
-import { ACTIVE_BOOT_CONFIG } from "../config/boot.config";
+import EventEmitter from "../utils/eventEmmiter";
 
-// Commands
-import { HelpCommand } from "../commands/HelpCommand";
-import { ClearCommand } from "../commands/ClearCommand";
-import { EchoCommand } from "../commands/EchoCommand";
-import { MatrixCommand } from "../commands/MatrixCommand";
-import { MatrixTextCommand } from "../commands/MatrixTextCommand";
-import { DemoCommand } from "../commands/DemoCommand";
-import { ExitCommand } from "../commands/ExitCommand";
+export type XTerminalOptions = {};
 
-/**
- * ProcessTerminalAdapter - Terminal adapter using process-based architecture
- * Manages xterm.js terminal and runs InitProcess which manages all other processes
- */
 export class ProcessTerminalAdapter implements ITerminalSource {
-  private terminal: Terminal;
-  private canvasAddon: CanvasAddon;
-  private container: HTMLElement;
+  private terminal?: Terminal;
+  private canvasAddon?: CanvasAddon;
+  private container?: HTMLElement;
   private ready: boolean = false;
-  private io: ProcessIO;
 
-  constructor(containerId: string) {
+  private io?: ProcessIO;
+  private signals: EventEmitter<SignalsEvents>;
+  private programRegistry: ProgramRegistry;
+  // private initProcess: IProcess;
+  // private
+
+  constructor(
+    containerId: string,
+    initProcess: IProcess,
+    programRegistry: ProgramRegistry,
+    options?: XTerminalOptions,
+  ) {
+    this.initXterm(containerId);
+
+    this.initIO();
+    this.signals = new EventEmitter<SignalsEvents>();
+    this.programRegistry = programRegistry;
+
+    setTimeout(async () => {
+      try {
+        await initProcess.start(this.createProcessContext());
+      } catch (error) {
+        console.error("Init process failed:", error);
+      }
+      this.terminal?.focus();
+    }, 100);
+
+    // Terminal is ready once init starts
+    this.ready = true;
+
+    window.addEventListener("resize", () => {
+      this.onResize();
+    });
+
+    setTimeout(() => {
+      this.onResize();
+    }, 100);
+  }
+
+  private onResize() {
+    if (!this.container) {
+      throw new Error("Terminal container not initialized");
+    }
+    const cols = Math.floor(this.container.clientWidth / 9);
+    const rows = Math.floor(this.container.clientHeight / 17);
+    this.terminal?.resize(cols, rows);
+    this.signals.emit(Signal.SIGWINCH, null);
+  }
+
+  private initXterm(containerId: string) {
     const element = document.getElementById(containerId);
     if (!element) {
       throw new Error(`Terminal container ${containerId} not found`);
     }
     this.container = element;
+    // this.container = document.createElement("div");
 
     this.terminal = new Terminal({
       fontFamily: "monospace",
@@ -49,109 +93,66 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     this.terminal.open(this.container);
     this.canvasAddon = new CanvasAddon();
     this.terminal.loadAddon(this.canvasAddon);
-
-    // Create ProcessIO with streams
-    this.io = createProcessIO();
-
-    // Connect stdout to terminal
-    (this.io.stdout as Stream).onData((data) => {
-      this.terminal.write(data);
-    });
-
-    // Connect stderr to terminal (with red color)
-    (this.io.stderr as Stream).onData((data) => {
-      this.terminal.write(data);
-    });
-
-    // Connect terminal input to stdin
-    this.terminal.onData((data) => {
-      (this.io.stdin as Stream).write(data);
-    });
-
-    // Create and start init process
-    // Init will be responsible for running boot programs and managing shell
-    const initProcess = this.createInitProcess();
-
-    // Start init process
-    setTimeout(async () => {
-      try {
-        await initProcess.start({
-          io: this.io,
-          args: [],
-          env: {},
-        });
-      } catch (error) {
-        console.error("Init process failed:", error);
-      }
-      this.terminal.focus();
-    }, 100);
-
-    // Terminal is ready once init starts
-    this.ready = true;
-
-    // Handle window resize
-    window.addEventListener("resize", () => {
-      this.terminal.resize(
-        Math.floor(this.container.clientWidth / 9),
-        Math.floor(this.container.clientHeight / 17),
-      );
-    });
-
-    // Initial resize
-    setTimeout(() => {
-      this.terminal.resize(
-        Math.floor(this.container.clientWidth / 9),
-        Math.floor(this.container.clientHeight / 17),
-      );
-    }, 100);
   }
 
-  /**
-   * Create and configure the init process
-   */
-  private createInitProcess() {
-    const commandNames = [
-      "help",
-      "clear",
-      "echo",
-      "matrix",
-      "mtext",
-      "demo",
-      "exit",
-    ];
-
-    // Shell configurator - registers commands when shell is created
-    const shellConfigurator = (shell: any) => {
-      shell.registerCommand("help", () => new HelpCommand(commandNames));
-      shell.registerCommand("clear", () => new ClearCommand());
-      shell.registerCommand("echo", () => new EchoCommand());
-      shell.registerCommand("matrix", () => new MatrixCommand());
-      shell.registerCommand("mtext", () => new MatrixTextCommand());
-      shell.registerCommand("demo", () => new DemoCommand());
-      shell.registerCommand("exit", () => new ExitCommand());
+  private initIO() {
+    const io = {
+      stdin: new Stream(),
+      stdout: new Stream(),
+      stderr: new Stream(),
     };
+    this.io = io;
 
-    // Create init process from boot configuration using factory
-    console.log(`[BOOT] Using: ${ACTIVE_BOOT_CONFIG.name}`);
-    return InitFactory.fromConfig(ACTIVE_BOOT_CONFIG, shellConfigurator);
+    io.stdout.onData((data) => {
+      this.terminal?.write(data);
+    });
+
+    io.stderr.onData((data) => {
+      this.terminal?.write(data);
+    });
+
+    this.terminal?.onData((data) => {
+      io.stdin.write(data);
+    });
   }
 
-  // For commands that need direct terminal access (temporary)
+  private createProcessContext(): ProcessContext {
+    if (!this.io) {
+      throw new Error("Process IO not initialized");
+    }
+    return {
+      io: this.io,
+      stdlib: {
+        getPrograms: () => this.programRegistry,
+        getWindowSize: this.getWindowSize.bind(this),
+      },
+      signals: this.signals,
+      args: [],
+      env: {},
+    };
+  }
+
   getTerminal(): Terminal {
-    return this.terminal;
+    return this.terminal!;
   }
 
-  // ITerminalSource implementation
   getCanvas(): HTMLCanvasElement | null {
-    return this.container.querySelector("canvas");
+    return this.container?.querySelector("canvas") || null;
   }
+
+  getWindowSize: () => { rows: number; cols: number } = () => {
+    return {
+      rows: this.terminal?.rows || 0,
+      cols: this.terminal?.cols || 0,
+    };
+  };
 
   isReady(): boolean {
     return this.ready;
   }
 
   scroll(lines: number): void {
-    this.terminal.scrollLines(lines);
+    this.terminal?.scrollLines(lines);
   }
 
   handleInput(event: KeyboardEvent): void {
@@ -211,7 +212,7 @@ export class ProcessTerminalAdapter implements ITerminalSource {
 
     // Send data to stdin stream
     if (data) {
-      (this.io.stdin as Stream).write(data);
+      (this.io?.stdin as Stream).write(data);
     }
   }
 }

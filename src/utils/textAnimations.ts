@@ -1,19 +1,15 @@
-import { Terminal } from "@xterm/xterm";
-
-/**
- * Text animation helper functions for terminal commands
- */
+import { WritableStream } from "./stream";
 
 /**
  * Print text character by character with delay
  */
 export async function printText(
-  terminal: Terminal,
+  stream: WritableStream,
   text: string,
   delayMs: number = 30,
 ): Promise<void> {
   for (const char of text) {
-    terminal.write(char);
+    stream.write(char);
     await delay(delayMs);
   }
 }
@@ -22,26 +18,26 @@ export async function printText(
  * Print text line by line with delay
  */
 export async function printLine(
-  terminal: Terminal,
+  stream: WritableStream,
   text: string,
   delayMs: number = 30,
 ): Promise<void> {
-  await printText(terminal, text, delayMs);
-  terminal.write("\r\n");
+  await printText(stream, text, delayMs);
+  stream.write("\r\n");
 }
 
 /**
  * Print multiple lines with delay between each line
  */
 export async function printLines(
-  terminal: Terminal,
+  stream: WritableStream,
   lines: string[],
   charDelayMs: number = 30,
   lineDelayMs: number = 100,
 ): Promise<void> {
   for (let i = 0; i < lines.length; i++) {
-    await printText(terminal, lines[i], charDelayMs);
-    terminal.write("\r\n");
+    await printText(stream, lines[i], charDelayMs);
+    stream.write("\r\n");
     if (i < lines.length - 1) {
       await delay(lineDelayMs);
     }
@@ -52,22 +48,22 @@ export async function printLines(
  * Print text with typing effect and optional blinking cursor
  */
 export async function typeText(
-  terminal: Terminal,
+  stream: WritableStream,
   text: string,
   delayMs: number = 50,
   showCursor: boolean = false,
 ): Promise<void> {
   if (showCursor) {
-    terminal.write("\x1b[?25h"); // Show cursor
+    stream.write("\x1b[?25h"); // Show cursor
   }
 
   for (const char of text) {
-    terminal.write(char);
+    stream.write(char);
     await delay(delayMs);
   }
 
   if (showCursor) {
-    terminal.write("\x1b[?25l"); // Hide cursor
+    stream.write("\x1b[?25l"); // Hide cursor
   }
 }
 
@@ -75,21 +71,21 @@ export async function typeText(
  * Print colored text character by character
  */
 export async function printColoredText(
-  terminal: Terminal,
+  stream: WritableStream,
   text: string,
   color: string,
   delayMs: number = 30,
 ): Promise<void> {
-  terminal.write(color);
-  await printText(terminal, text, delayMs);
-  terminal.write("\x1b[0m");
+  stream.write(color);
+  await printText(stream, text, delayMs);
+  stream.write("\x1b[0m");
 }
 
 /**
  * Print text with rainbow color effect
  */
 export async function printRainbowText(
-  terminal: Terminal,
+  stream: WritableStream,
   text: string,
   delayMs: number = 30,
 ): Promise<void> {
@@ -104,7 +100,7 @@ export async function printRainbowText(
 
   for (let i = 0; i < text.length; i++) {
     const color = colors[i % colors.length];
-    terminal.write(color + text[i] + "\x1b[0m");
+    stream.write(color + text[i] + "\x1b[0m");
     await delay(delayMs);
   }
 }
@@ -113,7 +109,7 @@ export async function printRainbowText(
  * Print text with glitch effect
  */
 export async function printGlitchText(
-  terminal: Terminal,
+  stream: WritableStream,
   text: string,
   iterations: number = 3,
 ): Promise<void> {
@@ -121,49 +117,49 @@ export async function printGlitchText(
 
   for (let iter = 0; iter < iterations; iter++) {
     // Show glitched version
-    terminal.write("\r");
+    stream.write("\r");
     for (const char of text) {
       if (Math.random() < 0.3) {
         const glitch =
           glitchChars[Math.floor(Math.random() * glitchChars.length)];
-        terminal.write("\x1b[91m" + glitch + "\x1b[0m");
+        stream.write("\x1b[91m" + glitch + "\x1b[0m");
       } else {
-        terminal.write(char);
+        stream.write(char);
       }
     }
     await delay(50);
   }
 
   // Show final correct text
-  terminal.write("\r" + text);
+  stream.write("\r" + text);
 }
 
 /**
  * Clear the current line
  */
-export function clearLine(terminal: Terminal): void {
-  terminal.write("\r\x1b[K");
+export function clearLine(stream: WritableStream): void {
+  stream.write("\r\x1b[K");
 }
 
 /**
  * Move cursor up n lines
  */
-export function moveCursorUp(terminal: Terminal, lines: number): void {
-  terminal.write(`\x1b[${lines}A`);
+export function moveCursorUp(stream: WritableStream, lines: number): void {
+  stream.write(`\x1b[${lines}A`);
 }
 
 /**
  * Move cursor down n lines
  */
-export function moveCursorDown(terminal: Terminal, lines: number): void {
-  terminal.write(`\x1b[${lines}B`);
+export function moveCursorDown(stream: WritableStream, lines: number): void {
+  stream.write(`\x1b[${lines}B`);
 }
 
 /**
  * Print a progress bar
  */
 export async function printProgressBar(
-  terminal: Terminal,
+  stream: WritableStream,
   duration: number = 2000,
   width: number = 30,
   label: string = "Loading",
@@ -178,20 +174,20 @@ export async function printProgressBar(
     const bar = "█".repeat(filled) + "░".repeat(empty);
     const percent = Math.floor(progress * 100);
 
-    clearLine(terminal);
-    terminal.write(`\x1b[36m${label}:\x1b[0m [${bar}] ${percent}%`);
+    clearLine(stream);
+    stream.write(`\x1b[36m${label}:\x1b[0m [${bar}] ${percent}%`);
 
     await delay(stepDelay);
   }
 
-  terminal.write("\r\n");
+  stream.write("\r\n");
 }
 
 /**
  * Print a spinner animation
  */
 export async function printSpinner(
-  terminal: Terminal,
+  stream: WritableStream,
   duration: number = 2000,
   message: string = "Processing",
 ): Promise<void> {
@@ -201,19 +197,19 @@ export async function printSpinner(
 
   for (let i = 0; i < iterations; i++) {
     const frame = frames[i % frames.length];
-    clearLine(terminal);
-    terminal.write(`\x1b[36m${frame}\x1b[0m ${message}...`);
+    clearLine(stream);
+    stream.write(`\x1b[36m${frame}\x1b[0m ${message}...`);
     await delay(frameDelay);
   }
 
-  clearLine(terminal);
+  clearLine(stream);
 }
 
 /**
  * Print a box around text
  */
 export async function printBox(
-  terminal: Terminal,
+  stream: WritableStream,
   lines: string[],
   delayMs: number = 30,
 ): Promise<void> {
@@ -221,28 +217,28 @@ export async function printBox(
   const top = "╔" + "═".repeat(maxWidth + 2) + "╗";
   const bottom = "╚" + "═".repeat(maxWidth + 2) + "╝";
 
-  await printLine(terminal, top, delayMs);
+  await printLine(stream, top, delayMs);
 
   for (const line of lines) {
     const padded = line.padEnd(maxWidth, " ");
-    await printLine(terminal, `║ ${padded} ║`, delayMs);
+    await printLine(stream, `║ ${padded} ║`, delayMs);
   }
 
-  await printLine(terminal, bottom, delayMs);
+  await printLine(stream, bottom, delayMs);
 }
 
 /**
  * Print ASCII art with color
  */
 export async function printAsciiArt(
-  terminal: Terminal,
+  stream: WritableStream,
   art: string[],
   color: string = "\x1b[32m",
   delayMs: number = 20,
 ): Promise<void> {
-  terminal.write(color);
-  await printLines(terminal, art, delayMs, 0);
-  terminal.write("\x1b[0m");
+  stream.write(color);
+  await printLines(stream, art, delayMs, 0);
+  stream.write("\x1b[0m");
 }
 
 /**

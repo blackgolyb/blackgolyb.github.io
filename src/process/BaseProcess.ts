@@ -5,14 +5,13 @@ import { IProcess, ProcessContext, ProcessState, ProcessIO } from "./IProcess";
  * Provides default implementations for process lifecycle
  */
 export abstract class BaseProcess implements IProcess {
+  static name: string = "base";
   protected pid: number;
-  protected name: string;
   protected state: ProcessState;
   protected context?: ProcessContext;
   protected io?: ProcessIO;
 
-  constructor(name: string) {
-    this.name = name;
+  constructor() {
     this.pid = Math.floor(Math.random() * 100000);
     this.state = ProcessState.READY;
   }
@@ -22,7 +21,7 @@ export abstract class BaseProcess implements IProcess {
   }
 
   getName(): string {
-    return this.name;
+    return "base";
   }
 
   getState(): ProcessState {
