@@ -1,6 +1,7 @@
 import { BaseProcess } from "../process/BaseProcess";
 import { ProcessContext, ProcessState } from "../process/IProcess";
 import { generateAsciiArt } from "../utils/asciiArt";
+import { shuffle } from "../utils/random";
 
 export class MatrixTextCommand extends BaseProcess {
   static name = "mtext";
@@ -19,13 +20,13 @@ export class MatrixTextCommand extends BaseProcess {
   }
 
   protected async run(context: ProcessContext): Promise<void> {
-    if (context.args.length === 0) {
-      this.writeLine("\x1b[33mUsage: mtext <text>\x1b[0m");
-      this.writeLine("Example: mtext HELLO WORLD");
+    // Parse arguments
+    const { text, duration } = this.parseArguments(context.args);
+
+    if (!text) {
+      this.showUsage();
       return;
     }
-
-    const text = context.args.join(" ");
 
     const { cols, rows } = context.stdlib.getWindowSize();
 
@@ -61,8 +62,11 @@ export class MatrixTextCommand extends BaseProcess {
     }
 
     this.running = true;
+    const startTime = Date.now();
+    const frameRate = 50; // ms per frame
     let frame = 0;
-    const revealDuration = 150; // frames to fully reveal text
+
+    const revealDuration = (duration * 0.8) / frameRate;
 
     // Hide cursor
     this.write("\x1b[?25l");
@@ -72,17 +76,30 @@ export class MatrixTextCommand extends BaseProcess {
 
     const animate = () => {
       if (!this.running || this.state === ProcessState.TERMINATED) {
-        this.write("\x1b[?25h");
-        this.write("\x1b[2J\x1b[H");
+        this.cleanup();
+        return;
+      }
+
+      const elapsed = Date.now() - startTime;
+
+      // Auto-exit when duration is reached
+      if (elapsed >= duration) {
+        this.running = false;
+        this.cleanup();
         return;
       }
 
       frame++;
 
-      // Calculate text reveal progress
+      // Calculate text reveal progress (0 to 1)
+      // Ensure it reaches 1.0 well before animation ends
       const revealProgress = Math.min(frame / revealDuration, 1);
 
-      // Update columns
+      // =================================================================
+      // LAYER 1: Draw Matrix Rain Background
+      // =================================================================
+
+      // Update and draw matrix columns
       for (let col = 0; col < cols; col++) {
         const column = columns[col];
 
@@ -104,42 +121,20 @@ export class MatrixTextCommand extends BaseProcess {
           column.chars[idx] = chars[Math.floor(Math.random() * chars.length)];
         }
 
-        // Draw the column
+        // Draw the column characters
         for (let i = 0; i < column.chars.length; i++) {
           const y = Math.floor(column.y - i);
           if (y >= 0 && y < rows) {
-            // Check if this position is part of the text
-            const isTextPos =
-              y >= startRow &&
-              y < startRow + artHeight &&
-              col >= startCol &&
-              col < startCol + artWidth;
-
-            if (isTextPos && Math.random() < revealProgress) {
-              const artRow = y - startRow;
-              const artCol = col - startCol;
-              const artChar = artLines[artRow][artCol];
-
-              // Only draw text characters (not spaces)
-              if (artChar !== " ") {
-                this.write(`\x1b[${y + 1};${col + 1}H`);
-                this.write("\x1b[97m"); // White for text
-                this.write(artChar);
-                continue;
-              }
-            }
-
-            // Draw normal rain
             this.write(`\x1b[${y + 1};${col + 1}H`);
 
             if (i === 0) {
-              this.write("\x1b[97m");
+              this.write("\x1b[97m"); // White head
             } else if (i < 3) {
-              this.write("\x1b[92m");
+              this.write("\x1b[92m"); // Bright green
             } else if (i < column.length / 2) {
-              this.write("\x1b[32m");
+              this.write("\x1b[32m"); // Green
             } else {
-              this.write("\x1b[38;5;22m");
+              this.write("\x1b[38;5;22m"); // Dark green
             }
 
             this.write(column.chars[i]);
@@ -149,40 +144,37 @@ export class MatrixTextCommand extends BaseProcess {
         // Fade out old characters
         const fadeY = Math.floor(column.y - column.length);
         if (fadeY >= 0 && fadeY < rows && Math.random() < 0.3) {
-          const isTextPos =
-            fadeY >= startRow &&
-            fadeY < startRow + artHeight &&
-            col >= startCol &&
-            col < startCol + artWidth;
-
-          if (!isTextPos) {
-            this.write(`\x1b[${fadeY + 1};${col + 1}H `);
-          }
+          this.write(`\x1b[${fadeY + 1};${col + 1}H `);
         }
       }
 
-      // After text is revealed, slowly transition
-      if (revealProgress >= 1 && frame > revealDuration + 100) {
-        // Gradually make text glow more
-        for (let row = 0; row < artHeight; row++) {
-          for (let col = 0; col < artWidth; col++) {
-            const artChar = artLines[row][col];
-            if (artChar !== " ") {
-              const screenRow = startRow + row;
-              const screenCol = startCol + col;
-              if (Math.random() < 0.1) {
-                this.write(`\x1b[${screenRow + 1};${screenCol + 1}H`);
-                this.write("\x1b[92m"); // Bright green
-                this.write(artChar);
-              }
-            }
-          }
+      // =================================================================
+      // LAYER 2: Draw Text Overlay
+      // =================================================================
+      const indices = Array.from({ length: artHeight * artWidth }, (_, i) => i);
+      shuffle(indices);
+      const drawing = new Set(
+        indices.slice(0, Math.floor(revealProgress * indices.length)),
+      );
+
+      for (let row = 0; row < artHeight; row++) {
+        for (let col = 0; col < artWidth; col++) {
+          const artChar = artLines[row][col];
+          if (artChar === " ") continue;
+          if (!drawing.has(row * artWidth + col)) continue;
+
+          const screenRow = startRow + row;
+          const screenCol = startCol + col;
+
+          this.write(`\x1b[${screenRow + 1};${screenCol + 1}H`);
+          this.write("\x1b[97m");
+          this.write(artChar);
         }
       }
 
       this.write("\x1b[0m");
 
-      setTimeout(animate, 50);
+      setTimeout(animate, frameRate);
     };
 
     animate();
@@ -195,5 +187,68 @@ export class MatrixTextCommand extends BaseProcess {
         }
       }, 100);
     });
+  }
+
+  private parseArguments(args: string[]): {
+    text: string;
+    duration: number;
+  } {
+    let text = "";
+    let duration = 10000; // Default 10 seconds
+
+    const textParts: string[] = [];
+
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+
+      // Check for --duration flag
+      if (arg === "--duration" || arg === "-d") {
+        if (i + 1 < args.length) {
+          const durationValue = parseInt(args[i + 1], 10);
+          if (!isNaN(durationValue) && durationValue > 0) {
+            duration = durationValue;
+            i++; // Skip next argument
+            continue;
+          }
+        }
+      }
+
+      // Otherwise, it's part of the text
+      textParts.push(arg);
+    }
+
+    text = textParts.join(" ");
+
+    return { text, duration };
+  }
+
+  private showUsage(): void {
+    this.writeLine("\x1b[33mUsage: mtext <text> [options]\x1b[0m");
+    this.writeLine("");
+    this.writeLine("Arguments:");
+    this.writeLine("  <text>              Text to display in matrix style");
+    this.writeLine("");
+    this.writeLine("Options:");
+    this.writeLine(
+      "  --duration, -d <ms> Animation duration in milliseconds (default: 10000)",
+    );
+    this.writeLine("");
+    this.writeLine("Examples:");
+    this.writeLine("  mtext HELLO");
+    this.writeLine('  mtext "HELLO WORLD"');
+    this.writeLine("  mtext CYBER --duration 5000");
+    this.writeLine('  mtext "CODE" -d 15000');
+    this.writeLine("");
+    this.writeLine(
+      "Note: Text reveals in first 50% of duration, then stays visible",
+    );
+    this.writeLine("Press Ctrl+C to exit early");
+  }
+
+  private cleanup(): void {
+    // Show cursor
+    this.write("\x1b[?25h");
+    // Clear screen
+    this.write("\x1b[2J\x1b[H");
   }
 }
