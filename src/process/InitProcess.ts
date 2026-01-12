@@ -1,5 +1,8 @@
+import config from "../core/config";
 import { BaseProcess } from "../process/BaseProcess";
 import { ProcessContext } from "../process/IProcess";
+import { Stream } from "../utils/stream";
+import { typeText } from "../utils/textAnimations";
 
 export class InitProcess extends BaseProcess {
   static name = "init";
@@ -18,9 +21,11 @@ export class InitProcess extends BaseProcess {
     }
     await mtext.start({
       ...context,
-      // args: ["Hello World", "700"],
-      args: ["Hello World"],
+      args: ["Hello World", "-d", `${config.introTime}`],
     });
+    setTimeout(() => {
+      typeText(context.io.stdin as Stream, "hello\r", 100);
+    }, 1000);
     await shell.start(context);
   }
 }
