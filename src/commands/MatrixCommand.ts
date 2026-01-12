@@ -1,5 +1,5 @@
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext, ProcessState } from "../process/IProcess";
+import { type ProcessContext, ProcessState } from "../process/IProcess";
 
 export class MatrixCommand extends BaseProcess {
   static name = "matrix";

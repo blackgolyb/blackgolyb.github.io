@@ -1,4 +1,4 @@
-import { Terminal } from "@xterm/xterm";
+import type { Terminal } from "@xterm/xterm";
 
 export interface TerminalAPI {
   write(data: string): void;

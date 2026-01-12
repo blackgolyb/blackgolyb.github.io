@@ -1,6 +1,6 @@
 import config from "../core/config";
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext } from "../process/IProcess";
+import type { ProcessContext } from "../process/IProcess";
 import { waitApprove } from "../utils/cli";
 import { delay, printProgressBar } from "../utils/textAnimations";
 

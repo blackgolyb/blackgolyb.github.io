@@ -22,7 +22,7 @@ export class AboutCommand extends TypeCommand {
   static name = "about";
   text: string = TEXT;
 
-  protected async getTextContext(): Promise<Record<string, any>> {
+  protected async getTextContext(): Promise<Record<string, unknown>> {
     const resp = await fetch(config.dataUrl);
     const data = await resp.json();
     return data;

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { EventEmitter, createEventEmitter } from "./eventEmmiter";
 
-interface TestEvents {
+interface TestEvents extends Record<string, unknown> {
   "user:login": { username: string; timestamp: number };
   "user:logout": { username: string };
-  "data:update": { id: string; value: any };
+  "data:update": { id: string; value: unknown };
   test: string;
   number: number;
 }
@@ -177,7 +177,7 @@ describe("EventEmitter", () => {
 
     it("should handle removing from non-existent event gracefully", () => {
       expect(() => {
-        emitter.off("nonexistent" as any);
+        emitter.off("nonexistent" as keyof TestEvents);
       }).not.toThrow();
     });
   });

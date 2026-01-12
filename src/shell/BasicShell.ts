@@ -1,4 +1,4 @@
-import { IShell, ShellOutput, ShellContext } from "./IShell";
+import type { IShell, ShellOutput, ShellContext } from "./IShell";
 
 export class BasicShell implements IShell {
   private output: ShellOutput;
@@ -347,7 +347,7 @@ export class BasicShell implements IShell {
 
   private handleHome(): void {
     this.cursorPosition = 0;
-    this.output.write("\r" + this.promptString);
+    this.output.write(`\r${this.promptString}`);
   }
 
   private handleEnd(): void {
@@ -377,7 +377,7 @@ export class BasicShell implements IShell {
     );
 
     // Clear line and write prompt + content
-    this.output.write("\r\x1b[K" + this.promptString);
+    this.output.write(`\r\x1b[K${this.promptString}`);
 
     if (this.cursorPosition < this.currentLine.length) {
       // Cursor in middle of line

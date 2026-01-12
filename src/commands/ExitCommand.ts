@@ -1,14 +1,16 @@
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext } from "../process/IProcess";
+import type { ProcessContext } from "../process/IProcess";
 import { typeText, delay } from "../utils/textAnimations";
-import { Terminal } from "@xterm/xterm";
+import type { Terminal } from "@xterm/xterm";
+import type { ProcessTerminalAdapter } from "../terminal/ProcessTerminalAdapter";
 
 export class ExitCommand extends BaseProcess {
   static name = "exit";
 
   protected async run(context: ProcessContext): Promise<void> {
     // Get terminal for direct manipulation
-    const terminal = (context.io as any).getTerminal?.() as Terminal;
+    const io = context.io as unknown as ProcessTerminalAdapter;
+    const terminal = io.getTerminal?.() as Terminal | undefined;
 
     if (!terminal) {
       this.writeLine("\x1b[31mError: Terminal not available\x1b[0m");
@@ -36,7 +38,7 @@ export class ExitCommand extends BaseProcess {
     ];
 
     for (const error of errors) {
-      await typeText(terminal, error + "\r\n", 20);
+      await typeText(terminal, `${error}\r\n`, 20);
       await delay(200);
     }
 
@@ -77,7 +79,7 @@ export class ExitCommand extends BaseProcess {
     await this.destroySite();
   }
 
-  private async glitchEffect(terminal: any): Promise<void> {
+  private async glitchEffect(terminal: Terminal): Promise<void> {
     const glitchChars = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`";
     for (let i = 0; i < 10; i++) {
       terminal.write("\r\n\x1b[91m");

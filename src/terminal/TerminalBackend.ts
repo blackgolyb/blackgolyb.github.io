@@ -1,8 +1,8 @@
-import { Terminal } from "@xterm/xterm";
-import { TerminalAPI, CommandContext } from "../commands/ICommand";
-import { CommandRegistry } from "../commands/CommandRegistry";
+import type { Terminal } from "@xterm/xterm";
+import type { TerminalAPI, CommandContext } from "../commands/ICommand";
+import type { CommandRegistry } from "../commands/CommandRegistry";
 import { BasicShell } from "../shell/BasicShell";
-import { ShellOutput, ShellContext } from "../shell/IShell";
+import type { ShellOutput, ShellContext } from "../shell/IShell";
 
 export class TerminalBackend implements TerminalAPI, ShellOutput {
   private terminal: Terminal;
@@ -58,7 +58,7 @@ export class TerminalBackend implements TerminalAPI, ShellOutput {
   }
 
   writeLine(data: string): void {
-    this.terminal.write(data + "\r\n");
+    this.terminal.write(`${data}\r\n`);
   }
 
   clear(): void {

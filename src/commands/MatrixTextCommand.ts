@@ -1,5 +1,5 @@
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext, ProcessState } from "../process/IProcess";
+import { type ProcessContext, ProcessState } from "../process/IProcess";
 import { generateAsciiArt } from "../utils/asciiArt";
 import { shuffle } from "../utils/random";
 
@@ -205,7 +205,7 @@ export class MatrixTextCommand extends BaseProcess {
       if (arg === "--duration" || arg === "-d") {
         if (i + 1 < args.length) {
           const durationValue = parseInt(args[i + 1], 10);
-          if (!isNaN(durationValue) && durationValue > 0) {
+          if (!Number.isNaN(durationValue) && durationValue > 0) {
             duration = durationValue;
             i++; // Skip next argument
             continue;

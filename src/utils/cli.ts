@@ -1,4 +1,4 @@
-import { ReadableStream, WritableStream } from "./stream";
+import type { ReadableStream, WritableStream } from "./stream";
 
 export async function readLine(
   stdin: ReadableStream,
@@ -6,11 +6,11 @@ export async function readLine(
 ): Promise<string> {
   let input = "";
   for await (const chunk of stdin) {
-    if (chunk == "\r" || chunk == "\n") {
+    if (chunk === "\r" || chunk === "\n") {
       stdout.write("\r\n");
       break;
     }
-    if (chunk == "\b") {
+    if (chunk === "\b") {
       if (input.length > 0) {
         input = input.slice(0, -1);
         stdout.write("\b \b");
@@ -28,7 +28,7 @@ export async function waitApprove(
   stdin: ReadableStream,
   stdout: WritableStream,
 ): Promise<boolean> {
-  stdout.write(prompt + " (y/n): ");
+  stdout.write(`${prompt} (y/n): `);
   const input = await readLine(stdin, stdout);
   if (input.toLowerCase() === "y" || input.toLowerCase() === "yes") {
     return true;

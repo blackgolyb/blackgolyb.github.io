@@ -11,12 +11,12 @@ export interface WritableStream {
 
 export interface IStream extends ReadableStream, WritableStream {}
 
-export class Stream extends EventEmitter implements IStream {
-  private buffer: string[] = [];
+interface StreamEvents extends Record<string, unknown> {
+  data: string;
+}
 
-  constructor() {
-    super();
-  }
+export class Stream extends EventEmitter<StreamEvents> implements IStream {
+  private buffer: string[] = [];
 
   write(data: string) {
     if (this.listenerCount("data") > 0) {
@@ -29,7 +29,10 @@ export class Stream extends EventEmitter implements IStream {
   onData(callback: (chunk: string) => void): () => void {
     const unsubscribe = this.on("data", callback);
     while (this.buffer.length > 0) {
-      callback(this.buffer.shift()!);
+      const chunk = this.buffer.shift();
+      if (chunk !== undefined) {
+        callback(chunk);
+      }
     }
     return unsubscribe;
   }
@@ -40,8 +43,10 @@ export class Stream extends EventEmitter implements IStream {
 
     this.onData((chunk) => {
       if (callbacks.length > 0) {
-        const cb = callbacks.shift()!;
-        cb({ value: chunk, done: false });
+        const cb = callbacks.shift();
+        if (cb) {
+          cb({ value: chunk, done: false });
+        }
       } else {
         queue.push(chunk);
       }
@@ -51,7 +56,10 @@ export class Stream extends EventEmitter implements IStream {
       next(): Promise<IteratorResult<string>> {
         return new Promise((resolve) => {
           if (queue.length > 0) {
-            resolve({ value: queue.shift()!, done: false });
+            const value = queue.shift();
+            if (value !== undefined) {
+              resolve({ value, done: false });
+            }
           } else {
             callbacks.push(resolve);
           }

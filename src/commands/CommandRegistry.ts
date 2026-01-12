@@ -1,4 +1,4 @@
-import { ICommand } from "./ICommand";
+import type { ICommand } from "./ICommand";
 
 export class CommandRegistry {
   private commands: Map<string, ICommand> = new Map();

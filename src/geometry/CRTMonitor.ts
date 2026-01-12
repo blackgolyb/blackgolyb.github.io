@@ -5,8 +5,6 @@ export interface GeometryData {
 }
 
 export class CRTMonitor {
-  constructor() {}
-
   createScreenGeometry(aspect: number = 1.0): GeometryData {
     const sx = aspect;
     const sy = 1;

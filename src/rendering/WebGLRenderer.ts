@@ -1,4 +1,4 @@
-import { ITerminalSource } from "../core/ITerminalSource";
+import type { ITerminalSource } from "../core/ITerminalSource";
 import { createProgram } from "../utils/shader";
 import { perspective, lookAt, rotateY } from "../utils/matrix";
 import { screenVertexShader, screenFragmentShader } from "./screenShader";
@@ -66,8 +66,13 @@ export class WebGLRenderer {
 
     this.viewMatrix = lookAt([0, 0, 1.0], [0, 0, 0], [0, 1, 0]);
 
-    this.screenVertexBuffer = this.gl.createBuffer()!;
-    this.screenIndexBuffer = this.gl.createBuffer()!;
+    const vertexBuffer = this.gl.createBuffer();
+    const indexBuffer = this.gl.createBuffer();
+    if (!vertexBuffer || !indexBuffer) {
+      throw new Error("Failed to create WebGL buffers");
+    }
+    this.screenVertexBuffer = vertexBuffer;
+    this.screenIndexBuffer = indexBuffer;
     this.screenIndexCount = 0;
 
     this.updateScreenGeometry(1.0);

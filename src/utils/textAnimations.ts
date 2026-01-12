@@ -1,4 +1,4 @@
-import { WritableStream } from "./stream";
+import type { WritableStream } from "./stream";
 
 /**
  * Print text character by character with delay
@@ -100,7 +100,7 @@ export async function printRainbowText(
 
   for (let i = 0; i < text.length; i++) {
     const color = colors[i % colors.length];
-    stream.write(color + text[i] + "\x1b[0m");
+    stream.write(`${color + text[i]}\x1b[0m`);
     await delay(delayMs);
   }
 }
@@ -122,7 +122,7 @@ export async function printGlitchText(
       if (Math.random() < 0.3) {
         const glitch =
           glitchChars[Math.floor(Math.random() * glitchChars.length)];
-        stream.write("\x1b[91m" + glitch + "\x1b[0m");
+        stream.write(`\x1b[91m${glitch}\x1b[0m`);
       } else {
         stream.write(char);
       }
@@ -131,7 +131,7 @@ export async function printGlitchText(
   }
 
   // Show final correct text
-  stream.write("\r" + text);
+  stream.write(`\r${text}`);
 }
 
 /**
@@ -214,8 +214,8 @@ export async function printBox(
   delayMs: number = 30,
 ): Promise<void> {
   const maxWidth = Math.max(...lines.map((l) => l.length));
-  const top = "╔" + "═".repeat(maxWidth + 2) + "╗";
-  const bottom = "╚" + "═".repeat(maxWidth + 2) + "╝";
+  const top = `╔${"═".repeat(maxWidth + 2)}╗`;
+  const bottom = `╚${"═".repeat(maxWidth + 2)}╝`;
 
   await printLine(stream, top, delayMs);
 

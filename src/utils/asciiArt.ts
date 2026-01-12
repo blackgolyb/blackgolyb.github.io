@@ -70,7 +70,7 @@ export function generateAsciiArt(text: string): string[] {
   for (const char of upperText) {
     const charLines = FONT_MAP[char] || FONT_MAP[" "];
     for (let i = 0; i < FONT_HEIGHT; i++) {
-      lines[i] += charLines[i] + " ";
+      lines[i] += `${charLines[i]} `;
     }
   }
 

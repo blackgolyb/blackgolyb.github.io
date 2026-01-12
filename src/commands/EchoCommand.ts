@@ -1,5 +1,5 @@
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext } from "../process/IProcess";
+import type { ProcessContext } from "../process/IProcess";
 
 export class EchoCommand extends BaseProcess {
   static name = "echo";

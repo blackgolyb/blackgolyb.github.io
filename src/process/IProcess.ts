@@ -1,5 +1,5 @@
-import EventEmitter from "../utils/eventEmmiter";
-import { ReadableStream, WritableStream } from "../utils/stream";
+import type EventEmitter from "../utils/eventEmmiter";
+import type { ReadableStream, WritableStream } from "../utils/stream";
 
 export interface ProcessIO {
   stdin: ReadableStream;
@@ -18,7 +18,7 @@ export enum Signal {
   SIGWINCH = "SIGWINCH",
 }
 
-export interface SignalsEvents {
+export interface SignalsEvents extends Record<string, unknown> {
   [Signal.SIGWINCH]: null;
 }
 

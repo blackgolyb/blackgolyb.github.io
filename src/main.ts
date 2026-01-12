@@ -12,7 +12,7 @@ import { DemoCommand } from "./commands/DemoCommand";
 import { ExitCommand } from "./commands/ExitCommand";
 import { ShellProcess } from "./process";
 import { InitProcess } from "./process/InitProcess";
-import { ProgramRegistry } from "./process/IProcess";
+import type { ProgramRegistry } from "./process/IProcess";
 import { HelloCommand } from "./commands/HelloCommand";
 import { CVCommand } from "./commands/CVCommand";
 import { AboutCommand } from "./commands/AboutCommand";

@@ -1,5 +1,10 @@
-import { IProcess, ProcessContext, ProcessState, ProcessIO } from "./IProcess";
-import { Stream } from "../utils/stream";
+import {
+  type IProcess,
+  type ProcessContext,
+  ProcessState,
+  type ProcessIO,
+} from "./IProcess";
+import type { Stream } from "../utils/stream";
 
 export class ShellProcess implements IProcess {
   static name = "shell";
@@ -293,7 +298,7 @@ export class ShellProcess implements IProcess {
         this.redrawLine();
       } else if (matches.length > 1) {
         this.io?.stdout.write("\r\n");
-        this.io?.stdout.write(matches.join("  ") + "\r\n");
+        this.io?.stdout.write(`${matches.join("  ")}\r\n`);
         this.showPrompt();
         this.redrawLine();
       }
@@ -384,7 +389,7 @@ export class ShellProcess implements IProcess {
 
   private handleHome(): void {
     this.cursorPosition = 0;
-    this.io?.stdout.write("\r" + this.promptString);
+    this.io?.stdout.write(`\r${this.promptString}`);
   }
 
   private handleEnd(): void {
@@ -414,7 +419,7 @@ export class ShellProcess implements IProcess {
     );
 
     // Clear line and write prompt + content
-    this.io?.stdout.write("\r\x1b[K" + this.promptString);
+    this.io?.stdout.write(`\r\x1b[K${this.promptString}`);
 
     if (this.cursorPosition < this.currentLine.length) {
       // Cursor in middle of line

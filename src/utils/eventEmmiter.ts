@@ -5,13 +5,13 @@
  * Supports wildcards, one-time listeners, and proper cleanup.
  */
 
-type EventHandler<T = any> = (data: T) => void | Promise<void>;
+type EventHandler<T = unknown> = (data: T) => void | Promise<void>;
 
 interface ListenerOptions {
   once?: boolean;
 }
 
-interface Listener<T = any> {
+interface Listener<T = unknown> {
   handler: EventHandler<T>;
   once: boolean;
 }
@@ -44,9 +44,10 @@ interface Listener<T = any> {
  * ```
  */
 export class EventEmitter<
-  EventMap extends Record<string, any> = Record<string, any>,
+  EventMap extends Record<string, unknown> = Record<string, unknown>,
 > {
-  private listeners: Map<keyof EventMap | string, Listener[]> = new Map();
+  private listeners: Map<keyof EventMap | string, Listener<unknown>[]> =
+    new Map();
   private maxListeners: number = 10;
 
   /**
@@ -69,15 +70,17 @@ export class EventEmitter<
       this.listeners.set(event, []);
     }
 
-    const listeners = this.listeners.get(event)!;
-    listeners.push(listener);
+    const listeners = this.listeners.get(event);
+    if (listeners) {
+      listeners.push(listener as Listener<unknown>);
 
-    // Warn if too many listeners (potential memory leak)
-    if (listeners.length > this.maxListeners) {
-      console.warn(
-        `Warning: Possible memory leak detected. ${listeners.length} listeners added for event "${String(event)}". ` +
-          `Use setMaxListeners() to increase limit.`,
-      );
+      // Warn if too many listeners (potential memory leak)
+      if (listeners.length > this.maxListeners) {
+        console.warn(
+          `Warning: Possible memory leak detected. ${listeners.length} listeners added for event "${String(event)}". ` +
+            `Use setMaxListeners() to increase limit.`,
+        );
+      }
     }
 
     // Return unsubscribe function
@@ -115,7 +118,11 @@ export class EventEmitter<
       return;
     }
 
-    const listeners = this.listeners.get(event)!;
+    const listeners = this.listeners.get(event);
+    if (!listeners) {
+      return;
+    }
+
     const index = listeners.findIndex((l) => l.handler === handler);
 
     if (index !== -1) {
@@ -142,20 +149,22 @@ export class EventEmitter<
 
     // Call exact match listeners
     if (this.listeners.has(event)) {
-      const listeners = this.listeners.get(event)!.slice(); // Clone to avoid issues with once() removing during iteration
+      const listeners = this.listeners.get(event)?.slice(); // Clone to avoid issues with once() removing during iteration
 
-      for (const listener of listeners) {
-        try {
-          const result = listener.handler(data);
-          if (result instanceof Promise) {
-            promises.push(result);
+      if (listeners) {
+        for (const listener of listeners) {
+          try {
+            const result = listener.handler(data);
+            if (result instanceof Promise) {
+              promises.push(result);
+            }
+          } catch (error) {
+            console.error(`Error in event handler for "${eventStr}":`, error);
           }
-        } catch (error) {
-          console.error(`Error in event handler for "${eventStr}":`, error);
-        }
 
-        if (listener.once) {
-          this.off(event, listener.handler);
+          if (listener.once) {
+            this.off(event, listener.handler);
+          }
         }
       }
     }
@@ -201,17 +210,19 @@ export class EventEmitter<
 
     // Call exact match listeners
     if (this.listeners.has(event)) {
-      const listeners = this.listeners.get(event)!.slice();
+      const listeners = this.listeners.get(event)?.slice();
 
-      for (const listener of listeners) {
-        try {
-          listener.handler(data);
-        } catch (error) {
-          console.error(`Error in event handler for "${eventStr}":`, error);
-        }
+      if (listeners) {
+        for (const listener of listeners) {
+          try {
+            listener.handler(data);
+          } catch (error) {
+            console.error(`Error in event handler for "${eventStr}":`, error);
+          }
 
-        if (listener.once) {
-          this.off(event, listener.handler);
+          if (listener.once) {
+            this.off(event, listener.handler);
+          }
         }
       }
     }
@@ -347,7 +358,7 @@ export class EventEmitter<
  * ```
  */
 export function createEventEmitter<
-  EventMap extends Record<string, any>,
+  EventMap extends Record<string, unknown>,
 >(): EventEmitter<EventMap> {
   return new EventEmitter<EventMap>();
 }

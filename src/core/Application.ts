@@ -1,4 +1,4 @@
-import { ITerminalSource } from "./ITerminalSource";
+import type { ITerminalSource } from "./ITerminalSource";
 import { WebGLRenderer } from "../rendering/WebGLRenderer";
 
 export class Application {

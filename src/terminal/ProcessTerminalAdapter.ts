@@ -1,19 +1,19 @@
 import { Terminal } from "@xterm/xterm";
 import { CanvasAddon } from "@xterm/addon-canvas";
 import "@xterm/xterm/css/xterm.css";
-import { ITerminalSource } from "../core/ITerminalSource";
+import type { ITerminalSource } from "../core/ITerminalSource";
 import {
-  IProcess,
-  ProcessContext,
-  ProcessIO,
-  ProgramRegistry,
+  type IProcess,
+  type ProcessContext,
+  type ProcessIO,
+  type ProgramRegistry,
   Signal,
-  SignalsEvents,
+  type SignalsEvents,
 } from "../process/IProcess";
 import { Stream } from "../utils/stream";
 import EventEmitter from "../utils/eventEmmiter";
 
-export type XTerminalOptions = {};
+export type XTerminalOptions = Record<string, never>;
 
 export class ProcessTerminalAdapter implements ITerminalSource {
   private terminal?: Terminal;
@@ -31,7 +31,7 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     containerId: string,
     initProcess: IProcess,
     programRegistry: ProgramRegistry,
-    options?: XTerminalOptions,
+    _options?: XTerminalOptions,
   ) {
     this.initXterm(containerId);
 
@@ -133,7 +133,10 @@ export class ProcessTerminalAdapter implements ITerminalSource {
   }
 
   getTerminal(): Terminal {
-    return this.terminal!;
+    if (!this.terminal) {
+      throw new Error("Terminal not initialized");
+    }
+    return this.terminal;
   }
 
   getCanvas(): HTMLCanvasElement | null {
@@ -199,7 +202,7 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     }
     // Handle Alt/Meta combinations (escape sequences)
     else if ((altKey || metaKey) && key.length === 1) {
-      data = "\x1b" + key;
+      data = `\x1b${key}`;
     }
     // Handle special keys
     else if (specialKeyMap[key]) {

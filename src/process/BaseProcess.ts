@@ -1,4 +1,9 @@
-import { IProcess, ProcessContext, ProcessState, ProcessIO } from "./IProcess";
+import {
+  type IProcess,
+  type ProcessContext,
+  ProcessState,
+  type ProcessIO,
+} from "./IProcess";
 
 /**
  * Base process class with common functionality
@@ -93,7 +98,7 @@ export abstract class BaseProcess implements IProcess {
    * Helper: Write line to process output (convenience wrapper)
    */
   protected writeLine(data: string): void {
-    this.io?.stdout.write(data + "\r\n");
+    this.io?.stdout.write(`${data}\r\n`);
   }
 
   /**
@@ -107,7 +112,7 @@ export abstract class BaseProcess implements IProcess {
    * Helper: Write line to error output (convenience wrapper)
    */
   protected writeErrorLine(data: string): void {
-    this.io?.stderr.write(data + "\r\n");
+    this.io?.stderr.write(`${data}\r\n`);
   }
 
   /**

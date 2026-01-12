@@ -1,7 +1,7 @@
 import config from "../core/config";
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext } from "../process/IProcess";
-import { Stream } from "../utils/stream";
+import type { ProcessContext } from "../process/IProcess";
+import type { Stream } from "../utils/stream";
 import { typeText } from "../utils/textAnimations";
 
 export class InitProcess extends BaseProcess {

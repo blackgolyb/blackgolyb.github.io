@@ -1,5 +1,5 @@
 import { BaseProcess } from "../process/BaseProcess";
-import { ProcessContext } from "../process/IProcess";
+import type { ProcessContext } from "../process/IProcess";
 import { renderTemplate } from "../utils/template";
 import { delay } from "../utils/textAnimations";
 
@@ -19,7 +19,7 @@ export class TypeCommand extends BaseProcess {
     }
   }
 
-  protected async getTextContext(): Promise<Record<string, any>> {
+  protected async getTextContext(): Promise<Record<string, unknown>> {
     return {};
   }
 
