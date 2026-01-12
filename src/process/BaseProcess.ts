@@ -32,6 +32,7 @@ export abstract class BaseProcess implements IProcess {
     this.context = context;
     this.io = context.io;
     this.state = ProcessState.RUNNING;
+    const unsubscribe = this.io.stdin.onData((data) => this.onInput(data));
 
     try {
       await this.run(context);
@@ -40,6 +41,8 @@ export abstract class BaseProcess implements IProcess {
       this.io?.stderr.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
       this.state = ProcessState.TERMINATED;
       throw error;
+    } finally {
+      unsubscribe();
     }
   }
 
