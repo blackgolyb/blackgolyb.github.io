@@ -2,7 +2,7 @@ import { EventEmitter } from "./eventEmmiter";
 
 export interface ReadableStream {
   [Symbol.asyncIterator](): AsyncIterator<string>;
-  onData(callback: (chunk: string) => void): void;
+  onData(callback: (chunk: string) => void): () => void;
 }
 
 export interface WritableStream {
@@ -26,11 +26,12 @@ export class Stream extends EventEmitter implements IStream {
     }
   }
 
-  onData(callback: (chunk: string) => void) {
-    this.on("data", callback);
+  onData(callback: (chunk: string) => void): () => void {
+    const unsubscribe = this.on("data", callback);
     while (this.buffer.length > 0) {
       callback(this.buffer.shift()!);
     }
+    return unsubscribe;
   }
 
   [Symbol.asyncIterator]() {
