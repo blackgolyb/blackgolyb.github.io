@@ -1,42 +1,25 @@
 html,
 body {
-  margin: 0;
-  background: #0a0a0a;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background: #0a0a0a;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: monospace;
 }
 
-#term {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  visibility: hidden;
-  z-index: 1;
+#terminal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
 }
 
-#term .xterm {
-  cursor: text;
-}
-
-#term textarea {
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -10;
-}
-
-#gl {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-  pointer-events: all;
-  outline: none;
+#terminal canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
 }

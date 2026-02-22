@@ -37,11 +37,7 @@ for (const program of PROGRAMS) {
 
 console.table(commandRegistry);
 
-const terminal = new ProcessTerminalAdapter(
-  "term",
-  new InitProcess(),
-  commandRegistry,
-);
-const app = new Application(terminal, "gl");
+const terminal = new ProcessTerminalAdapter(new InitProcess(), commandRegistry);
+const app = new Application(terminal, "terminal");
 
 app.start();

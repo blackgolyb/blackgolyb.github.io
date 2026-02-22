@@ -62,6 +62,9 @@ export class MatrixCommand extends BaseProcess {
         return;
       }
 
+      // Batch all writes into a single buffer
+      let frameBuffer = "\x1b[2J";
+
       // Update every column
       for (let col = 0; col < cols; col++) {
         const column = columns[col];
@@ -93,36 +96,39 @@ export class MatrixCommand extends BaseProcess {
           const y = Math.floor(column.y - i);
           if (y >= 0 && y < rows) {
             // Position cursor
-            this.write(`\x1b[${y + 1};${col + 1}H`);
+            frameBuffer += `\x1b[${y + 1};${col + 1}H`;
 
             // Color based on position in trail
             if (i === 0) {
               // Head - bright white
-              this.write("\x1b[97m");
+              frameBuffer += "\x1b[97m";
             } else if (i < 3) {
               // Near head - bright green
-              this.write("\x1b[92m");
+              frameBuffer += "\x1b[92m";
             } else if (i < column.length / 2) {
               // Middle - normal green
-              this.write("\x1b[32m");
+              frameBuffer += "\x1b[32m";
             } else {
               // Tail - dark green
-              this.write("\x1b[38;5;22m");
+              frameBuffer += "\x1b[38;5;22m";
             }
 
-            this.write(column.chars[i]);
+            frameBuffer += column.chars[i];
           }
         }
 
         // Fade out old characters
         const fadeY = Math.floor(column.y - column.length);
         if (fadeY >= 0 && fadeY < rows && Math.random() < 0.3) {
-          this.write(`\x1b[${fadeY + 1};${col + 1}H `);
+          frameBuffer += `\x1b[${fadeY + 1};${col + 1}H `;
         }
       }
 
       // Reset color
-      this.write("\x1b[0m");
+      frameBuffer += "\x1b[0m";
+
+      // Write entire frame at once
+      this.write(frameBuffer);
 
       // Continue animation
       setTimeout(animate, 50);

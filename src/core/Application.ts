@@ -1,53 +1,56 @@
 import type { ITerminalSource } from "./ITerminalSource";
-import { WebGLRenderer } from "../rendering/WebGLRenderer";
+import { CRTRenderer } from "../rendering/CRTRenderer";
+import type { ProcessTerminalAdapter } from "../terminal/ProcessTerminalAdapter";
 
 export class Application {
-  private renderer: WebGLRenderer;
+  private renderer: CRTRenderer;
   private running: boolean = false;
   private terminalSource: ITerminalSource;
-  private glCanvas: HTMLCanvasElement;
 
-  constructor(terminalSource: ITerminalSource, canvasId: string = "gl") {
+  constructor(
+    terminalSource: ITerminalSource,
+    containerId: string = "terminal",
+  ) {
     this.terminalSource = terminalSource;
-    this.renderer = new WebGLRenderer(canvasId, terminalSource);
 
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!canvas) {
-      throw new Error(`Canvas ${canvasId} not found`);
+    const container = document.getElementById(containerId);
+    if (!container) {
+      throw new Error(`Container ${containerId} not found`);
     }
-    this.glCanvas = canvas;
+    // Initialize CRT renderer
+    this.renderer = new CRTRenderer(containerId);
 
-    this.setupDirectInput();
+    // Attach the XTerm terminal to the CRT renderer
+    const terminal = (terminalSource as ProcessTerminalAdapter).getTerminal();
+    this.renderer.attachTerminal(terminal);
+
+    // Setup input handling and scrolling
     this.setupScrollListeners();
+    this.setupResizeHandler();
+
+    // Focus the terminal
+    setTimeout(() => {
+      this.renderer.focus();
+    }, 200);
   }
 
-  private setupDirectInput(): void {
-    // Make the WebGL canvas focusable
-    this.glCanvas.tabIndex = 1;
-
-    // Handle keyboard input directly
-    this.glCanvas.addEventListener("keydown", (event) => {
-      // Don't prevent default for PageUp/PageDown, handle them separately
-      if (
-        !["PageUp", "PageDown"].includes(event.key) ||
-        event.ctrlKey ||
-        event.altKey ||
-        event.metaKey
-      ) {
-        event.preventDefault();
-        this.terminalSource.handleInput(event);
+  private setupResizeHandler(): void {
+    const handleResize = () => {
+      const gridSize = this.renderer.getGridSize();
+      if (gridSize.cols > 0 && gridSize.rows > 0) {
+        (this.terminalSource as ProcessTerminalAdapter).updateTerminalSize(
+          gridSize.cols,
+          gridSize.rows,
+        );
       }
-    });
+    };
 
-    // Focus the canvas on click
-    this.glCanvas.addEventListener("click", () => {
-      this.glCanvas.focus();
-    });
+    window.addEventListener("resize", handleResize);
 
-    // Auto-focus on load
-    window.addEventListener("load", () => {
-      this.glCanvas.focus();
-    });
+    // Initial resize
+    setTimeout(() => {
+      handleResize();
+    }, 100);
   }
 
   private setupScrollListeners(): void {
@@ -68,6 +71,9 @@ export class Application {
       } else if (event.key === "PageDown") {
         event.preventDefault();
         this.terminalSource.scroll(10);
+      } else {
+        // Handle all other keyboard input
+        this.terminalSource.handleInput(event);
       }
     });
   }
@@ -75,17 +81,17 @@ export class Application {
   start(): void {
     if (this.running) return;
     this.running = true;
-    this.loop(0);
+    this.renderer.start();
   }
 
   stop(): void {
     this.running = false;
+    this.renderer.stop();
   }
 
-  private loop(time: number): void {
-    if (!this.running) return;
-
-    this.renderer.render(time);
-    requestAnimationFrame((t) => this.loop(t));
+  dispose(): void {
+    this.stop();
+    this.renderer.dispose();
+    (this.terminalSource as ProcessTerminalAdapter).dispose();
   }
 }

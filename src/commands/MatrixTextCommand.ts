@@ -95,6 +95,9 @@ export class MatrixTextCommand extends BaseProcess {
       // Ensure it reaches 1.0 well before animation ends
       const revealProgress = Math.min(frame / revealDuration, 1);
 
+      // Batch all writes into a single buffer
+      let frameBuffer = "";
+
       // =================================================================
       // LAYER 1: Draw Matrix Rain Background
       // =================================================================
@@ -125,26 +128,26 @@ export class MatrixTextCommand extends BaseProcess {
         for (let i = 0; i < column.chars.length; i++) {
           const y = Math.floor(column.y - i);
           if (y >= 0 && y < rows) {
-            this.write(`\x1b[${y + 1};${col + 1}H`);
+            frameBuffer += `\x1b[${y + 1};${col + 1}H`;
 
             if (i === 0) {
-              this.write("\x1b[97m"); // White head
+              frameBuffer += "\x1b[97m"; // White head
             } else if (i < 3) {
-              this.write("\x1b[92m"); // Bright green
+              frameBuffer += "\x1b[92m"; // Bright green
             } else if (i < column.length / 2) {
-              this.write("\x1b[32m"); // Green
+              frameBuffer += "\x1b[32m"; // Green
             } else {
-              this.write("\x1b[38;5;22m"); // Dark green
+              frameBuffer += "\x1b[38;5;22m"; // Dark green
             }
 
-            this.write(column.chars[i]);
+            frameBuffer += column.chars[i];
           }
         }
 
         // Fade out old characters
         const fadeY = Math.floor(column.y - column.length);
         if (fadeY >= 0 && fadeY < rows && Math.random() < 0.3) {
-          this.write(`\x1b[${fadeY + 1};${col + 1}H `);
+          frameBuffer += `\x1b[${fadeY + 1};${col + 1}H `;
         }
       }
 
@@ -166,13 +169,16 @@ export class MatrixTextCommand extends BaseProcess {
           const screenRow = startRow + row;
           const screenCol = startCol + col;
 
-          this.write(`\x1b[${screenRow + 1};${screenCol + 1}H`);
-          this.write("\x1b[97m");
-          this.write(artChar);
+          frameBuffer += `\x1b[${screenRow + 1};${screenCol + 1}H`;
+          frameBuffer += "\x1b[97m";
+          frameBuffer += artChar;
         }
       }
 
-      this.write("\x1b[0m");
+      frameBuffer += "\x1b[0m";
+
+      // Write entire frame at once
+      this.write(frameBuffer);
 
       setTimeout(animate, frameRate);
     };

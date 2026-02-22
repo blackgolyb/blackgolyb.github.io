@@ -1,5 +1,4 @@
 import { Terminal } from "@xterm/xterm";
-import { CanvasAddon } from "@xterm/addon-canvas";
 import "@xterm/xterm/css/xterm.css";
 import type { ITerminalSource } from "../core/ITerminalSource";
 import {
@@ -16,24 +15,42 @@ import EventEmitter from "../utils/eventEmmiter";
 export type XTerminalOptions = Record<string, never>;
 
 export class ProcessTerminalAdapter implements ITerminalSource {
-  private terminal?: Terminal;
-  private canvasAddon?: CanvasAddon;
-  private container?: HTMLElement;
+  private terminal: Terminal;
+  private hiddenContainer: HTMLDivElement;
   private ready: boolean = false;
 
   private io?: ProcessIO;
   private signals: EventEmitter<SignalsEvents>;
   private programRegistry: ProgramRegistry;
-  // private initProcess: IProcess;
-  // private
 
   constructor(
-    containerId: string,
     initProcess: IProcess,
     programRegistry: ProgramRegistry,
     _options?: XTerminalOptions,
   ) {
-    this.initXterm(containerId);
+    // Create hidden container for XTerm (used as data source only)
+    this.hiddenContainer = document.createElement("div");
+    this.hiddenContainer.style.position = "absolute";
+    this.hiddenContainer.style.left = "-9999px";
+    this.hiddenContainer.style.visibility = "hidden";
+    document.body.appendChild(this.hiddenContainer);
+
+    // Initialize XTerm
+    this.terminal = new Terminal({
+      fontFamily: "monospace",
+      fontSize: 16,
+      theme: {
+        background: "#000000",
+        foreground: "#00ff66",
+      },
+      scrollback: 10000,
+      allowTransparency: false,
+      cursorBlink: false,
+      cols: 80,
+      rows: 24,
+    });
+
+    this.terminal.open(this.hiddenContainer);
 
     this.initIO();
     this.signals = new EventEmitter<SignalsEvents>();
@@ -45,7 +62,6 @@ export class ProcessTerminalAdapter implements ITerminalSource {
       } catch (error) {
         console.error("Init process failed:", error);
       }
-      this.terminal?.focus();
     }, 100);
 
     // Terminal is ready once init starts
@@ -54,45 +70,18 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     window.addEventListener("resize", () => {
       this.onResize();
     });
-
-    setTimeout(() => {
-      this.onResize();
-    }, 100);
   }
 
-  private onResize() {
-    if (!this.container) {
-      throw new Error("Terminal container not initialized");
-    }
-    const cols = Math.floor(this.container.clientWidth / 9);
-    const rows = Math.floor(this.container.clientHeight / 17);
-    this.terminal?.resize(cols, rows);
+  onResize(): void {
+    // Resize will be handled by CRTRenderer
     this.signals.emit(Signal.SIGWINCH, null);
   }
 
-  private initXterm(containerId: string) {
-    const element = document.getElementById(containerId);
-    if (!element) {
-      throw new Error(`Terminal container ${containerId} not found`);
+  updateTerminalSize(cols: number, rows: number): void {
+    if (cols > 0 && rows > 0) {
+      this.terminal.resize(cols, rows);
+      this.signals.emit(Signal.SIGWINCH, null);
     }
-    this.container = element;
-    // this.container = document.createElement("div");
-
-    this.terminal = new Terminal({
-      fontFamily: "monospace",
-      fontSize: 16,
-      theme: {
-        background: "#000000",
-        foreground: "#00ff66",
-      },
-      scrollback: 10000,
-      allowTransparency: false,
-      cursorBlink: false, // We handle cursor in shell
-    });
-
-    this.terminal.open(this.container);
-    this.canvasAddon = new CanvasAddon();
-    this.terminal.loadAddon(this.canvasAddon);
   }
 
   private initIO() {
@@ -104,14 +93,15 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     this.io = io;
 
     io.stdout.onData((data) => {
-      this.terminal?.write(data);
+      // console.log("STDOUT:", data);
+      this.terminal.write(data);
     });
 
     io.stderr.onData((data) => {
-      this.terminal?.write(data);
+      this.terminal.write(data);
     });
 
-    this.terminal?.onData((data) => {
+    this.terminal.onData((data) => {
       io.stdin.write(data);
     });
   }
@@ -133,20 +123,18 @@ export class ProcessTerminalAdapter implements ITerminalSource {
   }
 
   getTerminal(): Terminal {
-    if (!this.terminal) {
-      throw new Error("Terminal not initialized");
-    }
     return this.terminal;
   }
 
   getCanvas(): HTMLCanvasElement | null {
-    return this.container?.querySelector("canvas") || null;
+    // XTerm canvas is no longer used for rendering
+    return null;
   }
 
   getWindowSize: () => { rows: number; cols: number } = () => {
     return {
-      rows: this.terminal?.rows || 0,
-      cols: this.terminal?.cols || 0,
+      rows: this.terminal.rows || 0,
+      cols: this.terminal.cols || 0,
     };
   };
 
@@ -155,7 +143,7 @@ export class ProcessTerminalAdapter implements ITerminalSource {
   }
 
   scroll(lines: number): void {
-    this.terminal?.scrollLines(lines);
+    this.terminal.scrollLines(lines);
   }
 
   handleInput(event: KeyboardEvent): void {
@@ -216,6 +204,13 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     // Send data to stdin stream
     if (data) {
       (this.io?.stdin as Stream).write(data);
+    }
+  }
+
+  dispose(): void {
+    this.terminal.dispose();
+    if (this.hiddenContainer.parentNode) {
+      this.hiddenContainer.parentNode.removeChild(this.hiddenContainer);
     }
   }
 }
