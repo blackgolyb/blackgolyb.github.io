@@ -63,7 +63,7 @@ export class MatrixCommand extends BaseProcess {
       }
 
       // Batch all writes into a single buffer
-      let frameBuffer = "\x1b[2J";
+      let frameBuffer = "";
 
       // Update every column
       for (let col = 0; col < cols; col++) {
