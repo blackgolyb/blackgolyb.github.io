@@ -9,6 +9,7 @@ import { EchoCommand } from "./commands/EchoCommand";
 import { MatrixCommand } from "./commands/MatrixCommand";
 import { MatrixTextCommand } from "./commands/MatrixTextCommand";
 import { DemoCommand } from "./commands/DemoCommand";
+import { ColorTestCommand } from "./commands/ColorTestCommand";
 import { ExitCommand } from "./commands/ExitCommand";
 import { ShellProcess } from "./process";
 import { InitProcess } from "./process/InitProcess";
@@ -28,6 +29,7 @@ const PROGRAMS = [
   MatrixCommand,
   MatrixTextCommand,
   DemoCommand,
+  ColorTestCommand,
   ExitCommand,
 ];
 const commandRegistry: ProgramRegistry = new Map();
