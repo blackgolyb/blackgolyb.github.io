@@ -1,11 +1,13 @@
 import type { ITerminalSource } from "./ITerminalSource";
 import { CRTRenderer } from "../rendering/CRTRenderer";
 import type { ProcessTerminalAdapter } from "../terminal/ProcessTerminalAdapter";
+import { MobileKeyboard } from "../terminal/MobileKeyboard";
 
 export class Application {
   private renderer: CRTRenderer;
   private running: boolean = false;
   private terminalSource: ITerminalSource;
+  private mobileKeyboard: MobileKeyboard | null = null;
 
   constructor(
     terminalSource: ITerminalSource,
@@ -28,28 +30,59 @@ export class Application {
     this.setupScrollListeners();
     this.setupResizeHandler();
 
+    // Setup mobile keyboard
+    this.setupMobileKeyboard();
+
     // Focus the terminal
     setTimeout(() => {
       this.renderer.focus();
     }, 200);
   }
 
-  private setupResizeHandler(): void {
-    const handleResize = () => {
-      const gridSize = this.renderer.getGridSize();
-      if (gridSize.cols > 0 && gridSize.rows > 0) {
-        (this.terminalSource as ProcessTerminalAdapter).updateTerminalSize(
-          gridSize.cols,
-          gridSize.rows,
-        );
-      }
-    };
+  private setupMobileKeyboard(): void {
+    const adapter = this.terminalSource as ProcessTerminalAdapter;
 
-    window.addEventListener("resize", handleResize);
+    // Create the mobile keyboard attached to document.body
+    // It will auto-show/hide based on screen width via media queries
+    this.mobileKeyboard = new MobileKeyboard(document.body, (data: string) => {
+      adapter.sendRawInput(data);
+    });
+
+    // When the keyboard visibility changes, trigger a resize so the terminal
+    // recalculates its grid size to fit the remaining space
+    const observer = new MutationObserver(() => {
+      setTimeout(() => {
+        this.handleResize();
+      }, 50);
+    });
+
+    const kbEl = document.getElementById("mobile-keyboard");
+    if (kbEl) {
+      observer.observe(kbEl, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    }
+  }
+
+  private handleResize(): void {
+    const gridSize = this.renderer.getGridSize();
+    if (gridSize.cols > 0 && gridSize.rows > 0) {
+      (this.terminalSource as ProcessTerminalAdapter).updateTerminalSize(
+        gridSize.cols,
+        gridSize.rows,
+      );
+    }
+  }
+
+  private setupResizeHandler(): void {
+    window.addEventListener("resize", () => {
+      this.handleResize();
+    });
 
     // Initial resize
     setTimeout(() => {
-      handleResize();
+      this.handleResize();
     }, 100);
   }
 
@@ -92,6 +125,9 @@ export class Application {
   dispose(): void {
     this.stop();
     this.renderer.dispose();
+    if (this.mobileKeyboard) {
+      this.mobileKeyboard.dispose();
+    }
     (this.terminalSource as ProcessTerminalAdapter).dispose();
   }
 }

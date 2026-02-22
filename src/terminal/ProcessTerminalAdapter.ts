@@ -207,6 +207,12 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     }
   }
 
+  sendRawInput(data: string): void {
+    if (this.io?.stdin) {
+      (this.io.stdin as Stream).write(data);
+    }
+  }
+
   dispose(): void {
     this.terminal.dispose();
     if (this.hiddenContainer.parentNode) {
