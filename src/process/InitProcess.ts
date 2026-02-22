@@ -1,3 +1,4 @@
+import config from "../core/config";
 import { BaseProcess } from "../process/BaseProcess";
 import type { ProcessContext } from "../process/IProcess";
 import type { Stream } from "../utils/stream";
@@ -18,10 +19,10 @@ export class InitProcess extends BaseProcess {
     if (!mtext || !shell) {
       throw new Error("Required programs 'mtext' or 'shell' not found.");
     }
-    // await mtext.start({
-    //   ...context,
-    //   args: ["Hello World", "-d", `${config.introTime}`],
-    // });
+    await mtext.start({
+      ...context,
+      args: ["Hello World", "-d", `${config.introTime}`],
+    });
     setTimeout(() => {
       typeText(context.io.stdin as Stream, "hello\r", 100);
     }, 1000);

@@ -1,5 +1,5 @@
 const config = {
-  introTime: 6500,
+  introTime: 5500,
   dataUrl: import.meta.env.VITE_DATA_URL,
 };
 
