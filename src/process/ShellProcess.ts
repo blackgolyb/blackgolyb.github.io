@@ -6,6 +6,14 @@ import {
 } from "./IProcess";
 import type { Stream } from "../utils/stream";
 
+/**
+ * Strip ANSI escape sequences from a string to get its visible length.
+ */
+function stripAnsi(str: string): string {
+  // biome-ignore lint: ANSI escape sequence pattern
+  return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "");
+}
+
 export class ShellProcess implements IProcess {
   static name = "shell";
   private pid: number;
@@ -21,8 +29,6 @@ export class ShellProcess implements IProcess {
   private historyIndex: number = -1;
   private historySearchPrefix: string = "";
   private promptString: string = "\x1b[32m$\x1b[0m ";
-  private cursorVisible: boolean = true;
-  private cursorBlinkInterval?: ReturnType<typeof setInterval>;
 
   // Escape sequence handlers
   private readonly escapeSequenceHandlers: Record<string, () => void> = {
@@ -62,8 +68,13 @@ export class ShellProcess implements IProcess {
     (context.io.stdin as Stream).onData((data) => this.onInput(data));
 
     this.showWelcome();
+
+    // Enable native cursor: blinking block via DECSCUSR
+    this.io?.stdout.write("\x1b[1 q");
+    // Ensure cursor is visible via DECTCEM
+    this.io?.stdout.write("\x1b[?25h");
+
     this.showPrompt();
-    this.startCursorBlink();
 
     // Shell never exits - it's a long-running process
     return new Promise(() => {
@@ -124,7 +135,8 @@ export class ShellProcess implements IProcess {
   }
 
   terminate(): void {
-    this.stopCursorBlink();
+    // Hide cursor on exit
+    this.io?.stdout.write("\x1b[?25l");
     this.state = ProcessState.TERMINATED;
   }
 
@@ -187,7 +199,11 @@ export class ShellProcess implements IProcess {
       }
       this.historyIndex = this.history.length;
 
+      // Hide cursor while command runs
+      this.io?.stdout.write("\x1b[?25l");
       await this.executeCommand(line);
+      // Show cursor again after command completes
+      this.io?.stdout.write("\x1b[?25h");
     }
 
     this.showPrompt();
@@ -256,7 +272,6 @@ export class ShellProcess implements IProcess {
         this.currentLine.slice(this.cursorPosition);
       this.cursorPosition--;
       this.historySearchPrefix = "";
-      this.resetCursorBlink();
       this.redrawLine();
     }
   }
@@ -273,7 +288,6 @@ export class ShellProcess implements IProcess {
       this.currentLine.slice(this.cursorPosition);
     this.cursorPosition++;
     this.historySearchPrefix = "";
-    this.resetCursorBlink();
     this.redrawLine();
   }
 
@@ -324,7 +338,6 @@ export class ShellProcess implements IProcess {
         this.historyIndex = i;
         this.currentLine = this.history[i];
         this.cursorPosition = this.currentLine.length;
-        this.resetCursorBlink();
         this.redrawLine();
         return;
       }
@@ -343,7 +356,6 @@ export class ShellProcess implements IProcess {
         this.historyIndex = i;
         this.currentLine = this.history[i];
         this.cursorPosition = this.currentLine.length;
-        this.resetCursorBlink();
         this.redrawLine();
         return;
       }
@@ -353,21 +365,20 @@ export class ShellProcess implements IProcess {
     this.historyIndex = this.history.length;
     this.currentLine = this.historySearchPrefix;
     this.cursorPosition = this.currentLine.length;
-    this.resetCursorBlink();
     this.redrawLine();
   }
 
   private handleLeftArrow(): void {
     if (this.cursorPosition > 0) {
       this.cursorPosition--;
-      this.io?.stdout.write("\x1b[D");
+      this.redrawLine();
     }
   }
 
   private handleRightArrow(): void {
     if (this.cursorPosition < this.currentLine.length) {
       this.cursorPosition++;
-      this.io?.stdout.write("\x1b[C");
+      this.redrawLine();
     }
   }
 
@@ -382,14 +393,13 @@ export class ShellProcess implements IProcess {
         this.currentLine.slice(0, this.cursorPosition) +
         this.currentLine.slice(this.cursorPosition + 1);
       this.historySearchPrefix = "";
-      this.resetCursorBlink();
       this.redrawLine();
     }
   }
 
   private handleHome(): void {
     this.cursorPosition = 0;
-    this.io?.stdout.write(`\r${this.promptString}`);
+    this.redrawLine();
   }
 
   private handleEnd(): void {
@@ -401,46 +411,24 @@ export class ShellProcess implements IProcess {
     this.currentLine = "";
     this.cursorPosition = 0;
     this.historySearchPrefix = "";
-    this.resetCursorBlink();
     this.redrawLine();
   }
 
+  /**
+   * Redraw the current input line with syntax highlighting,
+   * then position the native terminal cursor at the correct column.
+   * The CRT renderer handles cursor rendering and blinking natively.
+   */
   private redrawLine(): void {
     const highlightedLine = this.highlightSyntax(this.currentLine);
+    const promptVisibleLen = stripAnsi(this.promptString).length;
 
-    // Split the line at cursor position for cursor rendering
-    const beforeCursor = highlightedLine.substring(
-      0,
-      this.getCursorVisualPosition(),
-    );
-    const atCursor = this.currentLine[this.cursorPosition] || " ";
-    const afterCursor = highlightedLine.substring(
-      this.getCursorVisualPosition() + 1,
-    );
+    // Clear line, write prompt + highlighted content
+    this.io?.stdout.write(`\r\x1b[K${this.promptString}${highlightedLine}`);
 
-    // Clear line and write prompt + content
-    this.io?.stdout.write(`\r\x1b[K${this.promptString}`);
-
-    if (this.cursorPosition < this.currentLine.length) {
-      // Cursor in middle of line
-      this.io?.stdout.write(beforeCursor);
-      if (this.cursorVisible) {
-        this.io?.stdout.write(`\x1b[7m${atCursor}\x1b[27m`); // Reverse video for cursor
-      } else {
-        this.io?.stdout.write(atCursor);
-      }
-      this.io?.stdout.write(afterCursor);
-    } else {
-      // Cursor at end of line
-      this.io?.stdout.write(highlightedLine);
-      if (this.cursorVisible) {
-        this.io?.stdout.write("\x1b[7m \x1b[27m"); // Block cursor at end
-      }
-    }
-  }
-
-  private getCursorVisualPosition(): number {
-    return this.cursorPosition;
+    // Position the native cursor at the correct column (1-based, CSI G)
+    const cursorColumn = promptVisibleLen + this.cursorPosition + 1;
+    this.io?.stdout.write(`\x1b[${cursorColumn}G`);
   }
 
   private highlightSyntax(line: string): string {
@@ -464,29 +452,5 @@ export class ShellProcess implements IProcess {
         return part;
       })
       .join("");
-  }
-
-  private startCursorBlink(): void {
-    this.cursorBlinkInterval = setInterval(() => {
-      if (!this.foregroundProcess) {
-        this.cursorVisible = !this.cursorVisible;
-        this.redrawLine();
-      }
-    }, 530);
-  }
-
-  private stopCursorBlink(): void {
-    if (this.cursorBlinkInterval) {
-      clearInterval(this.cursorBlinkInterval);
-      this.cursorBlinkInterval = undefined;
-    }
-  }
-
-  private resetCursorBlink(): void {
-    this.cursorVisible = true;
-    if (this.cursorBlinkInterval) {
-      clearInterval(this.cursorBlinkInterval);
-    }
-    this.startCursorBlink();
   }
 }
