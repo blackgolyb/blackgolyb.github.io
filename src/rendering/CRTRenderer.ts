@@ -27,7 +27,7 @@ export class CRTRenderer {
       saturationColor: 0.7,
       flickering: 0.2,
       staticNoise: 0.06,
-      burnIn: 0.25,
+      burnIn: 0.15,
       rasterizationMode: 1,
       rasterizationIntensity: 0.5,
     });
