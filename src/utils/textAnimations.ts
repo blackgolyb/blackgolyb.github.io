@@ -164,10 +164,10 @@ export async function printProgressBar(
   width: number = 30,
   label: string = "Loading",
 ): Promise<void> {
-  const steps = 50;
+  const steps = 51;
   const stepDelay = duration / steps;
 
-  for (let i = 0; i <= steps; i++) {
+  for (let i = 0; i < steps; i++) {
     const progress = i / steps;
     const filled = Math.floor(progress * width);
     const empty = width - filled;
@@ -181,6 +181,7 @@ export async function printProgressBar(
   }
 
   stream.write("\r\n");
+  await delay(stepDelay);
 }
 
 /**

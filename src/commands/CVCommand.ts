@@ -2,16 +2,17 @@ import config from "../core/config";
 import { BaseProcess } from "../process/BaseProcess";
 import type { ProcessContext } from "../process/IProcess";
 import { waitApprove } from "../utils/cli";
-import { delay, printProgressBar } from "../utils/textAnimations";
+import { printProgressBar } from "../utils/textAnimations";
 
 export class CVCommand extends BaseProcess {
   static name = "cv";
 
   protected async run(context: ProcessContext): Promise<void> {
     this.writeLine("Fetching CV link");
-    printProgressBar(context.io.stdout, 700);
-
-    const { 0: cvLink } = await Promise.all([this.fetchCVLink(), delay(1000)]);
+    const { 0: cvLink } = await Promise.all([
+      this.fetchCVLink(),
+      printProgressBar(context.io.stdout, 700),
+    ]);
 
     if (!cvLink) {
       this.writeLine("CV link not found.");
