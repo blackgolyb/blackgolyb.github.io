@@ -11,6 +11,7 @@ import { MatrixTextCommand } from "./commands/MatrixTextCommand";
 import { DemoCommand } from "./commands/DemoCommand";
 import { ColorTestCommand } from "./commands/ColorTestCommand";
 import { ExitCommand } from "./commands/ExitCommand";
+import { BootCommand } from "./commands/BootCommand";
 import { ShellProcess } from "./process";
 import { InitProcess } from "./process/InitProcess";
 import type { ProgramRegistry } from "./process/IProcess";
@@ -31,6 +32,7 @@ const PROGRAMS = [
   DemoCommand,
   ColorTestCommand,
   ExitCommand,
+  BootCommand,
 ];
 const commandRegistry: ProgramRegistry = new Map();
 for (const program of PROGRAMS) {

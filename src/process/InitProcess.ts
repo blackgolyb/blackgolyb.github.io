@@ -15,14 +15,20 @@ export class InitProcess extends BaseProcess {
   protected async run(context: ProcessContext): Promise<void> {
     const programs = context.stdlib.getPrograms();
     const mtext = programs.get("mtext")?.();
+    const boot = programs.get("boot")?.();
     const shell = programs.get("shell")?.();
-    if (!mtext || !shell) {
-      throw new Error("Required programs 'mtext' or 'shell' not found.");
+    if (!mtext || !shell || !boot) {
+      throw new Error(
+        "Required programs 'mtext', 'shell', or 'boot' not found.",
+      );
     }
+
     await mtext.start({
       ...context,
       args: ["Hello World", "-d", `${config.introTime}`],
     });
+    await boot?.start(context);
+
     setTimeout(() => {
       typeText(context.io.stdin as Stream, "hello\r", 100);
     }, 1000);

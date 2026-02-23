@@ -67,8 +67,6 @@ export class ShellProcess implements IProcess {
     // Register input handler
     (context.io.stdin as Stream).onData((data) => this.onInput(data));
 
-    this.showWelcome();
-
     // Enable native cursor: blinking block via DECSCUSR
     this.io?.stdout.write("\x1b[1 q");
     // Ensure cursor is visible via DECTCEM
@@ -158,23 +156,6 @@ export class ShellProcess implements IProcess {
 
   getCommandNames(): string[] {
     return Array.from(this.context?.stdlib.getPrograms().keys() || []);
-  }
-
-  private showWelcome(): void {
-    this.io?.stdout.write(
-      "\x1b[32m╔════════════════════════════════════════╗\x1b[0m\r\n",
-    );
-    this.io?.stdout.write(
-      "\x1b[32m║     Cool Retro Term - Web Edition     ║\x1b[0m\r\n",
-    );
-    this.io?.stdout.write(
-      "\x1b[32m╚════════════════════════════════════════╝\x1b[0m\r\n",
-    );
-    this.io?.stdout.write("\r\n");
-    this.io?.stdout.write(
-      "Type \x1b[33mhelp\x1b[0m to see available commands\r\n",
-    );
-    this.io?.stdout.write("\r\n");
   }
 
   private showPrompt(): void {
