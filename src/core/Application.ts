@@ -2,12 +2,14 @@ import type { ITerminalSource } from "./ITerminalSource";
 import { CRTRenderer } from "../rendering/CRTRenderer";
 import type { ProcessTerminalAdapter } from "../terminal/ProcessTerminalAdapter";
 import { MobileKeyboard } from "../terminal/MobileKeyboard";
+import { TerminalClickHandler } from "../terminal/TerminalClickHandler";
 
 export class Application {
   private renderer: CRTRenderer;
   private running: boolean = false;
   private terminalSource: ITerminalSource;
   private mobileKeyboard: MobileKeyboard | null = null;
+  private clickHandler: TerminalClickHandler | null = null;
 
   constructor(
     terminalSource: ITerminalSource,
@@ -25,6 +27,9 @@ export class Application {
     // Attach the XTerm terminal to the CRT renderer
     const terminal = (terminalSource as ProcessTerminalAdapter).getTerminal();
     this.renderer.attachTerminal(terminal);
+
+    // Setup clickable links and commands in terminal output
+    this.clickHandler = new TerminalClickHandler(terminal, this.renderer);
 
     // Setup input handling and scrolling
     this.setupScrollListeners();
@@ -125,6 +130,10 @@ export class Application {
   dispose(): void {
     this.stop();
     this.renderer.dispose();
+    if (this.clickHandler) {
+      this.clickHandler.dispose();
+      this.clickHandler = null;
+    }
     if (this.mobileKeyboard) {
       this.mobileKeyboard.dispose();
     }

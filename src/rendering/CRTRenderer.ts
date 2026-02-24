@@ -3,6 +3,7 @@ import type { Terminal } from "@xterm/xterm";
 
 export class CRTRenderer {
   private crtTerminal: CRTTerminal;
+  private container: HTMLElement;
   private animationFrameId: number | null = null;
 
   constructor(containerId: string) {
@@ -10,6 +11,7 @@ export class CRTRenderer {
     if (!container) {
       throw new Error(`Container ${containerId} not found`);
     }
+    this.container = container;
 
     // Initialize the CRT renderer with custom settings
     this.crtTerminal = new CRTTerminal({
@@ -66,6 +68,21 @@ export class CRTRenderer {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+  }
+
+  /**
+   * Convert pixel coordinates (relative to the container) to terminal grid
+   * position (col, row). Accounts for screen curvature.
+   */
+  pixelToGrid(pixelX: number, pixelY: number): { col: number; row: number } {
+    return this.crtTerminal.getTerminalText().pixelToGrid(pixelX, pixelY);
+  }
+
+  /**
+   * Get the container element the renderer is attached to.
+   */
+  getContainer(): HTMLElement {
+    return this.container;
   }
 
   dispose(): void {
