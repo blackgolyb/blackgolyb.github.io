@@ -2,6 +2,7 @@ import { BaseProcess } from "../process/BaseProcess";
 import type { ProcessContext } from "../process/IProcess";
 
 const DESCRIPTIONS: Record<string, string> = {
+  hello: "About me — who I am and what I do",
   help: "Show this help message",
   clear: "Clear the terminal screen",
   echo: "Display a line of text",
@@ -13,6 +14,8 @@ const DESCRIPTIONS: Record<string, string> = {
 const DESCRIPTION_NOT_FOUND = "No description available";
 
 const FULL_DESCRIPTIONS: Record<string, string> = {
+  hello:
+    "About me — a short intro with who I am, what I do, and how to get started",
   help: "Show this help message",
   clear: "Clear the terminal screen",
   echo: "Display a line of text",

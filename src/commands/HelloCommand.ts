@@ -1,24 +1,38 @@
+import config from "../core/config";
 import { TypeCommand } from "./TypeCommand";
 
 const TEXT = `
-Hello! Welcome to my portfolio terminal.
+\x1b[32mGreetings, stranger.\x1b[0m
+You’ve wandered into a land where code constructs reality, and every system tells a story
 
-This is not your typical website - it's designed to resemble a command line interface, where you can navigate through my projects and learn more about me using commands.
+Hey! I'm \x1b[36m{{firstName}} {{lastName}}\x1b[0m, {{age}} y.o. \x1b[33m{{position}}\x1b[0m from {{location.city}}, {{location.country}}.
 
-Here are a few basic commands to get you started:
-  cv         download my CV for you :)
-  help       return a list of all available commands
-  projects   lists all the projects in my portfolio
-  about      provides information about me
-  contact    shows how you can reach out to me
+I build scalable backend systems with Python, FastAPI & SQLAlchemy,
+fueled by a background in applied math and a love for clean architecture.
+Always exploring new stacks, always shipping.
 
-Feel free to explore! If you ever need assistance, just type help or chose one of command in menu
-
-Let's start from about section
-about
+\x1b[2mType \x1b[0m\x1b[36m<help>\x1b[0m\x1b[2m to see all commands, or try \x1b[0m\x1b[36m<cv>\x1b[0m\x1b[2m to grab my resume.\x1b[0m
 `;
 
 export class HelloCommand extends TypeCommand {
   static name = "hello";
   text: string = TEXT;
+
+  protected async getTextContext(): Promise<Record<string, unknown>> {
+    try {
+      const resp = await fetch(config.dataUrl);
+      const data = await resp.json();
+
+      const age = Math.floor(
+        (Date.now() - new Date(data.dob).getTime()) /
+          (365.25 * 24 * 60 * 60 * 1000),
+      );
+      return {
+        ...data,
+        age,
+      };
+    } catch {
+      return {};
+    }
+  }
 }
