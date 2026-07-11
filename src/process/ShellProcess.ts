@@ -14,6 +14,13 @@ function stripAnsi(str: string): string {
   return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "");
 }
 
+type CommandLineToken = {
+  text: string;
+  value: string;
+  isQuoted: boolean;
+  isWhitespace: boolean;
+};
+
 export class ShellProcess implements IProcess {
   static name = "shell";
   private pid: number;
@@ -194,11 +201,11 @@ export class ShellProcess implements IProcess {
     if (!this.context) {
       throw new Error("Shell context is not available");
     }
-    const parts = line.split(/\s+/).filter((p) => p.length > 0);
-    if (parts.length === 0) return;
 
-    const commandName = parts[0];
-    const args = parts.slice(1);
+    const parsedCommand = this.parseCommand(line);
+    if (!parsedCommand) return;
+
+    const { commandName, args } = parsedCommand;
 
     const programs = this.context.stdlib.getPrograms();
     const commandFactory = programs.get(commandName);
@@ -220,6 +227,84 @@ export class ShellProcess implements IProcess {
     } catch (error) {
       this.io?.stdout.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
     }
+  }
+
+  private parseCommand(
+    line: string,
+  ): { commandName: string; args: string[] } | null {
+    const parts = this.tokenizeCommandLine(line)
+      .filter((token) => !token.isWhitespace)
+      .map((token) => token.value);
+
+    if (parts.length === 0) return null;
+
+    const [commandName, ...args] = parts;
+    return { commandName, args };
+  }
+
+  private tokenizeCommandLine(line: string): CommandLineToken[] {
+    const tokens: CommandLineToken[] = [];
+    let currentText = "";
+    let currentValue = "";
+    let quote: '"' | "'" | null = null;
+    let hasCurrentPart = false;
+    let isQuoted = false;
+
+    const pushCurrentPart = () => {
+      tokens.push({
+        text: currentText,
+        value: currentValue,
+        isQuoted,
+        isWhitespace: false,
+      });
+      currentText = "";
+      currentValue = "";
+      hasCurrentPart = false;
+      isQuoted = false;
+    };
+
+    for (const char of line) {
+      if (quote) {
+        currentText += char;
+        if (char === quote) {
+          quote = null;
+        } else {
+          currentValue += char;
+        }
+        continue;
+      }
+
+      if (char === '"' || char === "'") {
+        currentText += char;
+        quote = char;
+        hasCurrentPart = true;
+        isQuoted = true;
+        continue;
+      }
+
+      if (/\s/.test(char)) {
+        if (hasCurrentPart) {
+          pushCurrentPart();
+        }
+        tokens.push({
+          text: char,
+          value: char,
+          isQuoted: false,
+          isWhitespace: true,
+        });
+        continue;
+      }
+
+      currentText += char;
+      currentValue += char;
+      hasCurrentPart = true;
+    }
+
+    if (hasCurrentPart) {
+      pushCurrentPart();
+    }
+
+    return tokens;
   }
 
   private spawn(
@@ -413,21 +498,31 @@ export class ShellProcess implements IProcess {
   }
 
   private highlightSyntax(line: string): string {
-    const parts = line.split(/(\s+)/);
+    const tokens = this.tokenizeCommandLine(line);
     const commands = this.getCommandNames();
+    let tokenIndex = 0;
 
-    return parts
-      .map((part, index) => {
+    return tokens
+      .map((token) => {
+        const part = token.text;
+
+        if (token.isWhitespace) {
+          return part;
+        }
+
         // First word is the command
-        if (index === 0 && commands.includes(part)) {
+        if (tokenIndex === 0 && commands.includes(token.value)) {
+          tokenIndex++;
           return `\x1b[36m${part}\x1b[0m`; // Cyan for commands
         }
+        tokenIndex++;
+
         // Highlight strings
-        if (part.startsWith('"') || part.startsWith("'")) {
+        if (token.isQuoted) {
           return `\x1b[33m${part}\x1b[0m`; // Yellow for strings
         }
         // Highlight flags
-        if (part.startsWith("-")) {
+        if (token.value.startsWith("-")) {
           return `\x1b[35m${part}\x1b[0m`; // Magenta for flags
         }
         return part;
