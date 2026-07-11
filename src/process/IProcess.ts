@@ -30,6 +30,31 @@ export interface ProcessContext {
   env: Record<string, string>;
 }
 
+export interface ProcessMouseEvent {
+  type: "move" | "down" | "up" | "leave";
+  col: number;
+  row: number;
+  viewportY: number;
+  button: number;
+  buttons: number;
+  altKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  lineText: string;
+}
+
+export interface ProcessMouseResponse {
+  cursor?: "default" | "pointer";
+  hoverRange?: {
+    row: number;
+    startCol: number;
+    endCol: number;
+    viewportY: number;
+  } | null;
+  input?: string;
+  openUrl?: string;
+}
+
 export enum ProcessState {
   READY = "ready",
   RUNNING = "running",
@@ -43,6 +68,7 @@ export interface IProcess {
   getState(): ProcessState;
   start(context: ProcessContext): Promise<void>;
   onInput(data: string): void;
+  onMouseEvent?(event: ProcessMouseEvent): ProcessMouseResponse | void;
   terminate(): void;
   suspend(): void;
   resume(): void;

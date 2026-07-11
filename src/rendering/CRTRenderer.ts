@@ -1,4 +1,8 @@
-import { CRTTerminal } from "cool-retro-term-renderer";
+import {
+  CRTTerminal,
+  type CRTHoverRange,
+  type CRTMouseEvent,
+} from "cool-retro-term-renderer";
 import type { Terminal } from "@xterm/xterm";
 
 export class CRTRenderer {
@@ -37,6 +41,18 @@ export class CRTRenderer {
 
   attachTerminal(terminal: Terminal): void {
     this.crtTerminal.attachXTerm(terminal);
+  }
+
+  onMouseEvent(handler: (event: CRTMouseEvent) => void): () => void {
+    return this.crtTerminal.onMouseEvent(handler);
+  }
+
+  setHoverRange(range: CRTHoverRange | null): void {
+    this.crtTerminal.setHoverRange(range);
+  }
+
+  setCursorStyle(cursor: string): void {
+    this.crtTerminal.setCursorStyle(cursor);
   }
 
   detachTerminal(): void {

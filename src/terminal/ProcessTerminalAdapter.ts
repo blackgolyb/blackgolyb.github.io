@@ -5,6 +5,8 @@ import {
   type IProcess,
   type ProcessContext,
   type ProcessIO,
+  type ProcessMouseEvent,
+  type ProcessMouseResponse,
   type ProgramRegistry,
   Signal,
   type SignalsEvents,
@@ -22,12 +24,20 @@ export class ProcessTerminalAdapter implements ITerminalSource {
   private io?: ProcessIO;
   private signals: EventEmitter<SignalsEvents>;
   private programRegistry: ProgramRegistry;
+  private initProcess: IProcess;
+  private mouseTracking = {
+    normal: false,
+    button: false,
+    any: false,
+    sgr: false,
+  };
 
   constructor(
     initProcess: IProcess,
     programRegistry: ProgramRegistry,
     _options?: XTerminalOptions,
   ) {
+    this.initProcess = initProcess;
     // Create hidden container for XTerm (used as data source only)
     this.hiddenContainer = document.createElement("div");
     this.hiddenContainer.style.position = "absolute";
@@ -94,10 +104,12 @@ export class ProcessTerminalAdapter implements ITerminalSource {
 
     io.stdout.onData((data) => {
       // console.log("STDOUT:", data);
+      this.updateMouseTracking(data);
       this.terminal.write(data);
     });
 
     io.stderr.onData((data) => {
+      this.updateMouseTracking(data);
       this.terminal.write(data);
     });
 
@@ -211,6 +223,96 @@ export class ProcessTerminalAdapter implements ITerminalSource {
     if (this.io?.stdin) {
       (this.io.stdin as Stream).write(data);
     }
+  }
+
+  handleMouseEvent(event: ProcessMouseEvent): ProcessMouseResponse | void {
+    if (this.isMouseTrackingEnabled()) {
+      const sequence = this.encodeMouseEvent(event);
+      if (sequence) {
+        this.sendRawInput(sequence);
+      }
+      return { cursor: "default", hoverRange: null };
+    }
+
+    const response = this.initProcess.onMouseEvent?.(event);
+    if (response?.input) {
+      this.sendRawInput(response.input);
+    }
+    if (response?.openUrl) {
+      window.open(response.openUrl, "_blank", "noopener,noreferrer");
+    }
+    return response;
+  }
+
+  private updateMouseTracking(data: string): void {
+    const pattern = /\x1b\[\?([0-9;]+)([hl])/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(data)) !== null) {
+      const enabled = match[2] === "h";
+      for (const mode of match[1].split(";")) {
+        if (mode === "1000") this.mouseTracking.normal = enabled;
+        if (mode === "1002") this.mouseTracking.button = enabled;
+        if (mode === "1003") this.mouseTracking.any = enabled;
+        if (mode === "1006") this.mouseTracking.sgr = enabled;
+      }
+    }
+  }
+
+  private isMouseTrackingEnabled(): boolean {
+    return (
+      this.mouseTracking.normal ||
+      this.mouseTracking.button ||
+      this.mouseTracking.any
+    );
+  }
+
+  private encodeMouseEvent(event: ProcessMouseEvent): string | null {
+    if (event.type === "leave") return null;
+    if (event.type === "move" && !this.shouldSendMouseMove(event)) return null;
+
+    const isRelease = event.type === "up";
+    const isMove = event.type === "move";
+    let code = this.getMouseButtonCode(event);
+
+    if (isMove) {
+      code += 32;
+    }
+    if (event.shiftKey) code += 4;
+    if (event.altKey) code += 8;
+    if (event.ctrlKey) code += 16;
+
+    if (this.mouseTracking.sgr) {
+      const suffix = isRelease ? "m" : "M";
+      return `\x1b[<${code};${event.col + 1};${event.row + 1}${suffix}`;
+    }
+
+    return this.encodeLegacyMouseEvent(code, event, isRelease);
+  }
+
+  private encodeLegacyMouseEvent(
+    code: number,
+    event: ProcessMouseEvent,
+    isRelease: boolean,
+  ): string | null {
+    const col = event.col + 1;
+    const row = event.row + 1;
+    if (col > 223 || row > 223) return null;
+
+    return `\x1b[M${String.fromCharCode(32 + (isRelease ? 3 : code))}${String.fromCharCode(32 + col)}${String.fromCharCode(32 + row)}`;
+  }
+
+  private shouldSendMouseMove(event: ProcessMouseEvent): boolean {
+    if (this.mouseTracking.any) return true;
+    if (this.mouseTracking.button) return event.buttons !== 0;
+    return false;
+  }
+
+  private getMouseButtonCode(event: ProcessMouseEvent): number {
+    if (event.type === "move" && event.buttons === 0) return 3;
+    if (event.button === 1 || (event.buttons & 4) !== 0) return 1;
+    if (event.button === 2 || (event.buttons & 2) !== 0) return 2;
+    return 0;
   }
 
   dispose(): void {

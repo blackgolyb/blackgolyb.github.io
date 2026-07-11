@@ -2,14 +2,13 @@ import type { ITerminalSource } from "./ITerminalSource";
 import { CRTRenderer } from "../rendering/CRTRenderer";
 import type { ProcessTerminalAdapter } from "../terminal/ProcessTerminalAdapter";
 import { MobileKeyboard } from "../terminal/MobileKeyboard";
-import { TerminalClickHandler } from "../terminal/TerminalClickHandler";
 
 export class Application {
   private renderer: CRTRenderer;
   private running: boolean = false;
   private terminalSource: ITerminalSource;
   private mobileKeyboard: MobileKeyboard | null = null;
-  private clickHandler: TerminalClickHandler | null = null;
+  private unsubscribeMouseEvents: (() => void) | null = null;
 
   constructor(
     terminalSource: ITerminalSource,
@@ -28,8 +27,7 @@ export class Application {
     const terminal = (terminalSource as ProcessTerminalAdapter).getTerminal();
     this.renderer.attachTerminal(terminal);
 
-    // Setup clickable links and commands in terminal output
-    this.clickHandler = new TerminalClickHandler(terminal, this.renderer);
+    this.setupMouseHandler();
 
     // Setup input handling and scrolling
     this.setupScrollListeners();
@@ -42,6 +40,18 @@ export class Application {
     setTimeout(() => {
       this.renderer.focus();
     }, 200);
+  }
+
+  private setupMouseHandler(): void {
+    const adapter = this.terminalSource as ProcessTerminalAdapter;
+
+    this.unsubscribeMouseEvents = this.renderer.onMouseEvent((event) => {
+      const response = adapter.handleMouseEvent(event);
+      this.renderer.setCursorStyle(
+        response?.cursor === "pointer" ? "pointer" : "",
+      );
+      this.renderer.setHoverRange(response?.hoverRange ?? null);
+    });
   }
 
   private setupMobileKeyboard(): void {
@@ -129,11 +139,11 @@ export class Application {
 
   dispose(): void {
     this.stop();
-    this.renderer.dispose();
-    if (this.clickHandler) {
-      this.clickHandler.dispose();
-      this.clickHandler = null;
+    if (this.unsubscribeMouseEvents) {
+      this.unsubscribeMouseEvents();
+      this.unsubscribeMouseEvents = null;
     }
+    this.renderer.dispose();
     if (this.mobileKeyboard) {
       this.mobileKeyboard.dispose();
     }

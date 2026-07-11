@@ -3,6 +3,8 @@ import {
   type ProcessContext,
   ProcessState,
   type ProcessIO,
+  type ProcessMouseEvent,
+  type ProcessMouseResponse,
 } from "./IProcess";
 import type { Stream } from "../utils/stream";
 
@@ -21,6 +23,14 @@ type CommandLineToken = {
   isWhitespace: boolean;
 };
 
+type ClickTarget = {
+  type: "command" | "url";
+  value: string;
+  row: number;
+  startCol: number;
+  endCol: number;
+};
+
 export class ShellProcess implements IProcess {
   static name = "shell";
   private pid: number;
@@ -36,6 +46,7 @@ export class ShellProcess implements IProcess {
   private historyIndex: number = -1;
   private historySearchPrefix: string = "";
   private promptString: string = "\x1b[32m$\x1b[0m ";
+  private mouseDownTargetKey: string | null = null;
 
   // Escape sequence handlers
   private readonly escapeSequenceHandlers: Record<string, () => void> = {
@@ -137,6 +148,47 @@ export class ShellProcess implements IProcess {
     else if (code >= 32 && code < 127) {
       this.handlePrintable(data);
     }
+  }
+
+  onMouseEvent(event: ProcessMouseEvent): ProcessMouseResponse | void {
+    if (this.foregroundProcess?.onMouseEvent) {
+      return this.foregroundProcess.onMouseEvent(event);
+    }
+
+    if (event.type === "leave") {
+      this.mouseDownTargetKey = null;
+      return { cursor: "default", hoverRange: null };
+    }
+
+    const target = this.detectClickTarget(event);
+    if (!target) {
+      this.mouseDownTargetKey = null;
+      return { cursor: "default", hoverRange: null };
+    }
+
+    const targetKey = this.getClickTargetKey(target);
+    if (event.type === "down") {
+      this.mouseDownTargetKey = targetKey;
+    }
+
+    if (event.type === "up" && this.mouseDownTargetKey === targetKey) {
+      this.mouseDownTargetKey = null;
+      if (target.type === "command") {
+        return { input: `${target.value}\r`, hoverRange: null };
+      }
+
+      return { openUrl: target.value, hoverRange: null };
+    }
+
+    return {
+      cursor: "pointer",
+      hoverRange: {
+        row: target.row,
+        startCol: target.startCol,
+        endCol: target.endCol,
+        viewportY: event.viewportY,
+      },
+    };
   }
 
   terminate(): void {
@@ -305,6 +357,43 @@ export class ShellProcess implements IProcess {
     }
 
     return tokens;
+  }
+
+  private detectClickTarget(event: ProcessMouseEvent): ClickTarget | null {
+    const row = event.row + event.viewportY;
+
+    const commandRegex = /<([^>]+)>/g;
+    let match: RegExpExecArray | null;
+    while ((match = commandRegex.exec(event.lineText)) !== null) {
+      if (event.col >= match.index && event.col <= match.index + match[0].length - 1) {
+        return {
+          type: "command",
+          value: match[1],
+          row,
+          startCol: match.index,
+          endCol: match.index + match[0].length - 1,
+        };
+      }
+    }
+
+    const urlRegex = /https?:\/\/[^\s)>\]]+/g;
+    while ((match = urlRegex.exec(event.lineText)) !== null) {
+      if (event.col >= match.index && event.col <= match.index + match[0].length - 1) {
+        return {
+          type: "url",
+          value: match[0],
+          row,
+          startCol: match.index,
+          endCol: match.index + match[0].length - 1,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private getClickTargetKey(target: ClickTarget): string {
+    return `${target.type}:${target.row}:${target.startCol}:${target.endCol}:${target.value}`;
   }
 
   private async spawn(
