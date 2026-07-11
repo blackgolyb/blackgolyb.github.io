@@ -6,8 +6,7 @@ const DESCRIPTIONS: Record<string, string> = {
   help: "Show this help message",
   clear: "Clear the terminal screen",
   echo: "Display a line of text",
-  matrix: "Enter the Matrix - digital rain effect",
-  mtext: "Display text with Matrix effect",
+  matrix: "Matrix rain with optional text overlay",
   exit: "Exit the system (with dramatic effect)",
 };
 
@@ -19,8 +18,7 @@ const FULL_DESCRIPTIONS: Record<string, string> = {
   help: "Show this help message",
   clear: "Clear the terminal screen",
   echo: "Display a line of text",
-  matrix: "Enter the Matrix - digital rain effect",
-  mtext: "Display text with Matrix effect",
+  matrix: "Run Matrix rain. Add an optional text overlay with --text or -t.",
   exit: "Exit the system (with dramatic effect)",
 };
 

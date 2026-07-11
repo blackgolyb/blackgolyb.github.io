@@ -14,18 +14,18 @@ export class InitProcess extends BaseProcess {
 
   protected async run(context: ProcessContext): Promise<void> {
     const programs = context.stdlib.getPrograms();
-    const mtext = programs.get("mtext")?.();
+    const matrix = programs.get("matrix")?.();
     const boot = programs.get("boot")?.();
     const shell = programs.get("shell")?.();
-    if (!mtext || !shell || !boot) {
+    if (!matrix || !shell || !boot) {
       throw new Error(
-        "Required programs 'mtext', 'shell', or 'boot' not found.",
+        "Required programs 'matrix', 'shell', or 'boot' not found.",
       );
     }
 
-    await mtext.start({
+    await matrix.start({
       ...context,
-      args: ["Hello World", "-d", `${config.introTime}`],
+      args: ["-t", "Hello World", "-d", `${config.introTime}`],
     });
     await boot?.start(context);
 

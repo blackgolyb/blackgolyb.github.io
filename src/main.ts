@@ -7,7 +7,6 @@ import { HelpCommand } from "./commands/HelpCommand";
 import { ClearCommand } from "./commands/ClearCommand";
 import { EchoCommand } from "./commands/EchoCommand";
 import { MatrixCommand } from "./commands/MatrixCommand";
-import { MatrixTextCommand } from "./commands/MatrixTextCommand";
 import { DemoCommand } from "./commands/DemoCommand";
 import { ColorTestCommand } from "./commands/ColorTestCommand";
 import { ExitCommand } from "./commands/ExitCommand";
@@ -26,7 +25,6 @@ const PROGRAMS = [
   ClearCommand,
   EchoCommand,
   MatrixCommand,
-  MatrixTextCommand,
   DemoCommand,
   ColorTestCommand,
   ExitCommand,
