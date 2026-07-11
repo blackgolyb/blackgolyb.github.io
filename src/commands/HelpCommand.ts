@@ -3,6 +3,7 @@ import type { ProcessContext } from "../process/IProcess";
 
 const DESCRIPTIONS: Record<string, string> = {
   about: "Detailed profile, experience, skills, and links",
+  contacts: "Interactive contact form",
   hello: "About me — who I am and what I do",
   help: "Show this help message",
   clear: "Clear the terminal screen",
@@ -16,6 +17,7 @@ const DESCRIPTION_NOT_FOUND = "No description available";
 const FULL_DESCRIPTIONS: Record<string, string> = {
   about:
     "Detailed terminal profile with experience, skills, education, and contact links",
+  contacts: "Interactive TUI form for sending me a message",
   hello:
     "About me — a short intro with who I am, what I do, and how to get started",
   help: "Show this help message",

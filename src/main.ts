@@ -17,10 +17,12 @@ import type { ProgramRegistry } from "./process/IProcess";
 import { HelloCommand } from "./commands/HelloCommand";
 import { CVCommand } from "./commands/CVCommand";
 import { AboutCommand } from "./commands/AboutCommand";
+import { ContactsCommand } from "./commands/ContactsCommand";
 
 const PROGRAMS = [
   HelloCommand,
   AboutCommand,
+  ContactsCommand,
   CVCommand,
   HelpCommand,
   ShellProcess,

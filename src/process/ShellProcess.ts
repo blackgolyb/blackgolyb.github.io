@@ -46,6 +46,7 @@ export class ShellProcess implements IProcess {
   private historyIndex: number = -1;
   private historySearchPrefix: string = "";
   private promptString: string = "\x1b[32m$\x1b[0m ";
+  private shellInputLocked = false;
   private mouseDownTargetKey: string | null = null;
 
   // Escape sequence handlers
@@ -99,7 +100,7 @@ export class ShellProcess implements IProcess {
   }
 
   onInput(data: string): void {
-    if (this.foregroundProcess) {
+    if (this.shellInputLocked || this.foregroundProcess) {
       return;
     }
 
@@ -153,6 +154,11 @@ export class ShellProcess implements IProcess {
   onMouseEvent(event: ProcessMouseEvent): ProcessMouseResponse | void {
     if (this.foregroundProcess?.onMouseEvent) {
       return this.foregroundProcess.onMouseEvent(event);
+    }
+
+    if (this.shellInputLocked || this.foregroundProcess) {
+      this.mouseDownTargetKey = null;
+      return { cursor: "default", hoverRange: null };
     }
 
     if (event.type === "leave") {
@@ -239,11 +245,16 @@ export class ShellProcess implements IProcess {
       }
       this.historyIndex = this.history.length;
 
-      // Hide cursor while command runs
-      this.io?.stdout.write("\x1b[?25l");
-      await this.executeCommand(line);
-      // Show cursor again after command completes
-      this.io?.stdout.write("\x1b[?25h");
+      this.shellInputLocked = true;
+      try {
+        // Hide cursor while command runs
+        this.io?.stdout.write("\x1b[?25l");
+        await this.executeCommand(line);
+      } finally {
+        this.shellInputLocked = false;
+        // Show cursor again after command completes
+        this.io?.stdout.write("\x1b[?25h");
+      }
     }
 
     this.showPrompt();

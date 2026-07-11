@@ -161,7 +161,7 @@ export class ProcessTerminalAdapter implements ITerminalSource {
   handleInput(event: KeyboardEvent): void {
     if (!this.ready) return;
 
-    const { key, ctrlKey, altKey, metaKey } = event;
+    const { key, ctrlKey, altKey, metaKey, shiftKey } = event;
 
     let data = "";
 
@@ -196,8 +196,12 @@ export class ProcessTerminalAdapter implements ITerminalSource {
       Delete: "\x1b[3~",
     };
 
+    // Handle Shift+Tab (Backtab)
+    if (key === "Tab" && shiftKey) {
+      data = "\x1b[Z";
+    }
     // Handle Ctrl combinations
-    if (ctrlKey && ctrlKeyMap[key]) {
+    else if (ctrlKey && ctrlKeyMap[key]) {
       data = ctrlKeyMap[key];
     }
     // Handle Alt/Meta combinations (escape sequences)

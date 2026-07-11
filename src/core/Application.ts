@@ -112,18 +112,29 @@ export class Application {
       { passive: false },
     );
 
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "PageUp") {
-        event.preventDefault();
-        this.terminalSource.scroll(-10);
-      } else if (event.key === "PageDown") {
-        event.preventDefault();
-        this.terminalSource.scroll(10);
-      } else {
-        // Handle all other keyboard input
-        this.terminalSource.handleInput(event);
-      }
-    });
+    window.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Tab") {
+          event.preventDefault();
+          event.stopPropagation();
+          this.terminalSource.handleInput(event);
+          return;
+        }
+
+        if (event.key === "PageUp") {
+          event.preventDefault();
+          this.terminalSource.scroll(-10);
+        } else if (event.key === "PageDown") {
+          event.preventDefault();
+          this.terminalSource.scroll(10);
+        } else {
+          // Handle all other keyboard input
+          this.terminalSource.handleInput(event);
+        }
+      },
+      { capture: true },
+    );
   }
 
   start(): void {
