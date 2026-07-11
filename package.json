@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@xterm/xterm": "^5.5.0",
-    "cool-retro-term-renderer": "^1.0.1",
+    "cool-retro-term-renderer": "github:blackgolyb/cool-retro-term-renderer#main",
     "three": "^0.170.0"
   }
 }

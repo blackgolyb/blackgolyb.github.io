@@ -1,6 +1,6 @@
-import config from "../core/config";
 import { BaseProcess } from "../process/BaseProcess";
 import type { ProcessContext } from "../process/IProcess";
+import dataService from "../services/DataService";
 import { waitApprove } from "../utils/cli";
 import { printProgressBar } from "../utils/textAnimations";
 
@@ -31,8 +31,6 @@ export class CVCommand extends BaseProcess {
   }
 
   protected async fetchCVLink(): Promise<string> {
-    const resp = await fetch(config.dataUrl);
-    const data = await resp.json();
-    return data.cvLink;
+    return dataService.fetchCVLink();
   }
 }
