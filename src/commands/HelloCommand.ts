@@ -11,7 +11,7 @@ I build scalable backend systems with Python, FastAPI & SQLAlchemy,
 fueled by a background in applied math and a love for clean architecture.
 Always exploring new stacks, always shipping.
 
-{{ "Type " | dim }}{{ "<help>" | cyan }}{{ " to see all commands, or try " | dim }}{{ "<cv>" | cyan }}{{ " to grab my resume." | dim }}
+{{ "Type " | dim }}{{ "<about>" | cyan }}{{ " for the full story, " | dim }}{{ "<cv>" | cyan }}{{ " for the formal PDF, or " | dim }}{{ "<help>" | cyan }}{{ " to see all commands." | dim }}
 `;
 
 export class HelloCommand extends TypeCommand {

@@ -2,6 +2,7 @@ import { BaseProcess } from "../process/BaseProcess";
 import type { ProcessContext } from "../process/IProcess";
 
 const DESCRIPTIONS: Record<string, string> = {
+  about: "Detailed profile, experience, skills, and links",
   hello: "About me — who I am and what I do",
   help: "Show this help message",
   clear: "Clear the terminal screen",
@@ -13,6 +14,8 @@ const DESCRIPTIONS: Record<string, string> = {
 const DESCRIPTION_NOT_FOUND = "No description available";
 
 const FULL_DESCRIPTIONS: Record<string, string> = {
+  about:
+    "Detailed terminal profile with experience, skills, education, and contact links",
   hello:
     "About me — a short intro with who I am, what I do, and how to get started",
   help: "Show this help message",
@@ -43,11 +46,8 @@ export class HelpCommand extends BaseProcess {
 
   protected async runForProgram(cmdName: string): Promise<void> {
     const programs = this.context?.stdlib.getPrograms();
-    const program = Object.values(programs || {}).find(
-      (prog) => prog.getName() === cmdName,
-    );
 
-    if (!program) {
+    if (!programs?.has(cmdName)) {
       this.writeLine(`\x1b[31mError: Command '${cmdName}' not found.\x1b[0m`);
       return;
     }
