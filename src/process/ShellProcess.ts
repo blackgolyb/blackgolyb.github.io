@@ -223,7 +223,7 @@ export class ShellProcess implements IProcess {
       const process = commandFactory();
 
       // Spawn and run the process
-      this.spawn(process, args, {});
+      await this.spawn(process, args, {});
     } catch (error) {
       this.io?.stdout.write(`\x1b[31mError: ${error}\x1b[0m\r\n`);
     }
@@ -307,23 +307,27 @@ export class ShellProcess implements IProcess {
     return tokens;
   }
 
-  private spawn(
+  private async spawn(
     process: IProcess,
     args: string[] = [],
     env: Record<string, string> = {},
-  ) {
+  ): Promise<void> {
     if (!this.context) {
       throw new Error("Shell context is not available");
     }
-    const running = process.start({
-      ...this.context,
-      args,
-      env,
-    });
-    running.finally(() => {
-      this.foregroundProcess = null;
-    });
+
     this.foregroundProcess = process;
+    try {
+      await process.start({
+        ...this.context,
+        args,
+        env,
+      });
+    } finally {
+      if (this.foregroundProcess === process) {
+        this.foregroundProcess = null;
+      }
+    }
   }
 
   private handleBackspace(): void {
