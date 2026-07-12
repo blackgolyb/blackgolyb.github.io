@@ -80,6 +80,7 @@ export class HelpCommand extends TypeCommand {
     lines.push(
       "",
       "Click a <command> link or type it at the prompt.",
+      "Use Ctrl+U / Ctrl+D to scroll terminal history.",
       "Use Ctrl+C to interrupt running programs.",
       "Use Tab for command autocompletion.",
     );

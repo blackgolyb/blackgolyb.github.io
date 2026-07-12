@@ -60,6 +60,7 @@ export class Application {
     // Create the mobile keyboard attached to document.body
     // It will auto-show/hide based on screen width via media queries
     this.mobileKeyboard = new MobileKeyboard(document.body, (data: string) => {
+      if (this.handleScrollShortcut(data)) return;
       adapter.sendRawInput(data);
     });
 
@@ -115,6 +116,10 @@ export class Application {
     window.addEventListener(
       "keydown",
       (event) => {
+        if (this.handleKeyboardScrollShortcut(event)) {
+          return;
+        }
+
         if (event.key === "Tab") {
           event.preventDefault();
           event.stopPropagation();
@@ -135,6 +140,32 @@ export class Application {
       },
       { capture: true },
     );
+  }
+
+  private handleKeyboardScrollShortcut(event: KeyboardEvent): boolean {
+    if (!event.ctrlKey || event.altKey || event.metaKey) return false;
+
+    const key = event.key.toLowerCase();
+    if (key !== "u" && key !== "d") return false;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.terminalSource.scroll(key === "u" ? -10 : 10);
+    return true;
+  }
+
+  private handleScrollShortcut(data: string): boolean {
+    if (data === "\x15") {
+      this.terminalSource.scroll(-10);
+      return true;
+    }
+
+    if (data === "\x04") {
+      this.terminalSource.scroll(10);
+      return true;
+    }
+
+    return false;
   }
 
   start(): void {
