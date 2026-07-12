@@ -27,6 +27,7 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@xterm/xterm": "^5.5.0",
     "cool-retro-term-renderer": "github:blackgolyb/cool-retro-term-renderer#main",
     "three": "^0.170.0"
