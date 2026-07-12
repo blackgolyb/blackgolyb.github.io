@@ -29,16 +29,26 @@ export class ContactsCommand extends BaseProcess {
   protected async run(context: ProcessContext): Promise<void> {
     const { cols, rows } = context.stdlib.getWindowSize();
     const { links, status } = await this.loadLinks();
+    const compact = this.isCompact(cols, rows);
 
     this.form = new Form({
-      title: "Contact uplink",
-      help: "Fill the form, press Tab/Shift+Tab to navigate, Esc to abort.",
+      title: compact ? "Contact" : "Contact uplink",
+      help: compact
+        ? "Tab: next. Esc: abort."
+        : "Fill the form, press Tab/Shift+Tab to navigate, Esc to abort.",
       submitLabel: "[ Submit ]",
-      links,
+      cancelLabel: "[ Cancel ]",
+      compact,
+      links: compact ? this.getCompactLinks(links, rows) : links,
       fields: [
         { id: "name", label: "Name", type: "input" },
         { id: "email", label: "Email", type: "input" },
-        { id: "message", label: "Message", type: "textarea", rows: 2 },
+        {
+          id: "message",
+          label: "Message",
+          type: "textarea",
+          rows: compact ? 1 : 2,
+        },
       ],
       status,
       onLink: (link) => this.openLink(link),
@@ -152,6 +162,33 @@ export class ContactsCommand extends BaseProcess {
     }
 
     return links;
+  }
+
+  private isCompact(cols: number, rows: number): boolean {
+    return cols < 56 || rows < 24;
+  }
+
+  private getCompactLinks(
+    links: FormLinkDefinition[],
+    rows: number,
+  ): FormLinkDefinition[] {
+    const maxLinks = rows < 20 ? 3 : 5;
+    return links.slice(0, maxLinks).map((link) => ({
+      ...link,
+      label: this.getCompactLinkLabel(link),
+    }));
+  }
+
+  private getCompactLinkLabel(link: FormLinkDefinition): string {
+    const label = link.label.toLowerCase();
+
+    if (link.id === "cv") return "CV";
+    if (label.includes("github")) return "GH";
+    if (label.includes("linkedin")) return "IN";
+    if (label.includes("telegram")) return "TG";
+    if (label.includes("email") || label.includes("mail")) return "Mail";
+
+    return link.label.length <= 6 ? link.label : link.label.slice(0, 6);
   }
 
   private openLink(link: FormLinkDefinition): void {

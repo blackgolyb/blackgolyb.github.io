@@ -31,6 +31,8 @@ export interface FormOptions {
   links?: FormLinkDefinition[];
   fields: FormFieldDefinition[];
   submitLabel: string;
+  cancelLabel?: string;
+  compact?: boolean;
   minWidth?: number;
   minHeight?: number;
   maxWidth?: number;
@@ -57,13 +59,15 @@ const styles = {
   labelFocused: { fg: "cyan" } satisfies TuiStyle,
   button: { fg: "green" } satisfies TuiStyle,
   buttonActive: { fg: "green", reverse: true } satisfies TuiStyle,
+  cancelButton: { fg: "red" } satisfies TuiStyle,
+  cancelButtonActive: { fg: "red", reverse: true } satisfies TuiStyle,
   disabled: { fg: "gray", dim: true } satisfies TuiStyle,
   error: { fg: "red" } satisfies TuiStyle,
 };
 
 export class Form implements TuiWidget {
   private options: Required<
-    Pick<FormOptions, "minWidth" | "minHeight" | "maxWidth">
+    Pick<FormOptions, "compact" | "minWidth" | "minHeight" | "maxWidth">
   > &
     FormOptions;
   private headerX = 0;
@@ -71,12 +75,15 @@ export class Form implements TuiWidget {
   private linkLayouts: LinkLayout[] = [];
   private fieldLayouts: FieldLayout[] = [];
   private submitRect: Rect = { x: 0, y: 0, width: 0, height: 1 };
+  private cancelRect: Rect = { x: 0, y: 0, width: 0, height: 1 };
   private focusIndex = 0;
   private values: FormValues = {};
   private hoveredLinkIndex = -1;
   private hoveredSubmit = false;
+  private hoveredCancel = false;
   private mouseDownLinkIndex = -1;
   private mouseDownSubmit = false;
+  private mouseDownCancel = false;
   private submitting = false;
   private submitted = false;
   private status = "";
@@ -84,10 +91,12 @@ export class Form implements TuiWidget {
   private requiredHeight = 0;
 
   constructor(options: FormOptions) {
+    const compact = options.compact ?? false;
     this.options = {
-      minWidth: options.minWidth ?? 48,
-      minHeight: options.minHeight ?? 22,
-      maxWidth: options.maxWidth ?? 74,
+      compact,
+      minWidth: options.minWidth ?? (compact ? 30 : 48),
+      minHeight: options.minHeight ?? (compact ? 15 : 22),
+      maxWidth: options.maxWidth ?? (compact ? 44 : 74),
       ...options,
     };
     this.status = options.status ?? "";
@@ -121,11 +130,14 @@ export class Form implements TuiWidget {
     }
 
     const left = Math.floor((bounds.width - width) / 2);
-    const top = Math.max(1, Math.floor((bounds.height - formHeight) / 2));
+    const centeredTop = Math.floor((bounds.height - formHeight) / 2);
+    const top = this.options.compact
+      ? Math.max(0, centeredTop)
+      : Math.max(1, centeredTop);
     this.headerX = left;
     this.headerY = top;
 
-    let y = top + 3;
+    let y = top + (this.options.compact ? 2 : 3);
     if (this.options.links?.length) {
       let x = left;
       for (const link of this.options.links) {
@@ -141,7 +153,7 @@ export class Form implements TuiWidget {
         });
         x += label.length + 2;
       }
-      y += 2;
+      y += this.options.compact ? 1 : 2;
     }
 
     for (const field of this.options.fields) {
@@ -153,9 +165,21 @@ export class Form implements TuiWidget {
       y += rows + 3;
     }
 
-    const submitWidth = Math.max(this.getSubmitLabel().length, 10);
+    const submitWidth = this.getButtonWidth(this.getSubmitLabel());
+    const cancelWidth = this.hasCancelButton()
+      ? this.getButtonWidth(this.getCancelLabel())
+      : 0;
+    const buttonGap = this.hasCancelButton() ? 2 : 0;
+    const buttonsWidth = cancelWidth + buttonGap + submitWidth;
+    const buttonsX = left + Math.floor((width - buttonsWidth) / 2);
+    this.cancelRect = {
+      x: buttonsX,
+      y,
+      width: cancelWidth,
+      height: 1,
+    };
     this.submitRect = {
-      x: left + Math.floor((width - submitWidth) / 2),
+      x: buttonsX + cancelWidth + buttonGap,
       y,
       width: submitWidth,
       height: 1,
@@ -177,7 +201,15 @@ export class Form implements TuiWidget {
     const titleX = this.headerX;
     const titleY = this.headerY;
     buffer.write(titleX, titleY, this.options.title, styles.title);
-    buffer.write(titleX, titleY + 1, this.options.help, styles.help);
+    buffer.write(
+      titleX,
+      titleY + 1,
+      this.fit(
+        this.options.help,
+        this.fieldLayouts[0]?.rect.width ?? buffer.width,
+      ),
+      styles.help,
+    );
 
     for (const [index, layout] of this.linkLayouts.entries()) {
       const active = this.isLinkFocused(index) || this.hoveredLinkIndex === index;
@@ -198,7 +230,7 @@ export class Form implements TuiWidget {
     const status = this.status || "Your message stays local until Submit.";
     buffer.write(
       titleX,
-      this.submitRect.y + 2,
+      this.submitRect.y + (this.options.compact ? 1 : 2),
       this.fit(status, this.fieldLayouts[0]?.rect.width ?? buffer.width),
       this.status.startsWith("Failed") || this.status.includes("required")
         ? styles.error
@@ -208,7 +240,7 @@ export class Form implements TuiWidget {
     if (this.submitted) {
       buffer.write(
         titleX,
-        this.submitRect.y + 3,
+        this.submitRect.y + (this.options.compact ? 2 : 3),
         "Press any key to return to shell.",
         styles.help,
       );
@@ -230,7 +262,14 @@ export class Form implements TuiWidget {
   }
 
   getCursor(): Point | null {
-    if (this.submitting || this.submitted || this.isSubmitFocused()) return null;
+    if (
+      this.submitting ||
+      this.submitted ||
+      this.isSubmitFocused() ||
+      this.isCancelFocused()
+    ) {
+      return null;
+    }
 
     const layout = this.getFocusedFieldLayout();
     if (!layout) return null;
@@ -264,6 +303,14 @@ export class Form implements TuiWidget {
           endCol: layout.rect.x + layout.rect.width - 1,
         };
       }
+    }
+
+    if (this.hoveredCancel) {
+      return {
+        row: this.cancelRect.y,
+        startCol: this.cancelRect.x,
+        endCol: this.cancelRect.x + this.cancelRect.width - 1,
+      };
     }
 
     if (!this.hoveredSubmit) return null;
@@ -311,6 +358,8 @@ export class Form implements TuiWidget {
       const link = this.getFocusedLinkLayout();
       if (link) {
         this.options.onLink?.(link.link);
+      } else if (this.isCancelFocused()) {
+        this.options.onCancel?.();
       } else if (this.isSubmitFocused()) {
         this.options.onSubmit?.(this.getValues());
       } else {
@@ -339,21 +388,29 @@ export class Form implements TuiWidget {
   private handleMouseMove(x: number, y: number): boolean {
     this.hoveredLinkIndex = this.getLinkIndexAt(x, y);
     this.hoveredSubmit = this.isInsideSubmit(x, y);
-    return this.hoveredLinkIndex >= 0 || this.hoveredSubmit;
+    this.hoveredCancel = this.isInsideCancel(x, y);
+    return this.hoveredLinkIndex >= 0 || this.hoveredSubmit || this.hoveredCancel;
   }
 
   private handleMouseDown(x: number, y: number): boolean {
     this.mouseDownLinkIndex = this.getLinkIndexAt(x, y);
     this.mouseDownSubmit = this.isInsideSubmit(x, y);
+    this.mouseDownCancel = this.isInsideCancel(x, y);
     if (this.mouseDownLinkIndex >= 0) {
       this.focusIndex = this.mouseDownLinkIndex;
     }
+    if (this.mouseDownCancel) this.focusIndex = this.getCancelFocusIndex();
 
     const fieldIndex = this.fieldLayouts.findIndex((layout) =>
       this.isInsideRect(x, y, layout.rect),
     );
     if (fieldIndex >= 0) this.focusIndex = this.linkLayouts.length + fieldIndex;
-    return this.mouseDownLinkIndex >= 0 || this.mouseDownSubmit || fieldIndex >= 0;
+    return (
+      this.mouseDownLinkIndex >= 0 ||
+      this.mouseDownSubmit ||
+      this.mouseDownCancel ||
+      fieldIndex >= 0
+    );
   }
 
   private handleMouseUp(x: number, y: number): boolean {
@@ -365,8 +422,12 @@ export class Form implements TuiWidget {
     if (this.mouseDownSubmit && this.isInsideSubmit(x, y) && !this.submitting) {
       this.options.onSubmit?.(this.getValues());
     }
+    if (this.mouseDownCancel && this.isInsideCancel(x, y)) {
+      this.options.onCancel?.();
+    }
     this.mouseDownLinkIndex = -1;
     this.mouseDownSubmit = false;
+    this.mouseDownCancel = false;
     return true;
   }
 
@@ -406,11 +467,24 @@ export class Form implements TuiWidget {
     const active = this.isSubmitFocused() || this.hoveredSubmit;
     const disabled = this.submitting || this.submitted;
     const style = disabled ? styles.disabled : active ? styles.buttonActive : styles.button;
+    this.renderCancel(buffer);
     buffer.write(
       this.submitRect.x,
       this.submitRect.y,
       this.getSubmitLabel().padEnd(this.submitRect.width),
       style,
+    );
+  }
+
+  private renderCancel(buffer: TuiBufferLike): void {
+    if (!this.hasCancelButton() || this.submitted) return;
+
+    const active = this.isCancelFocused() || this.hoveredCancel;
+    buffer.write(
+      this.cancelRect.x,
+      this.cancelRect.y,
+      this.getCancelLabel().padEnd(this.cancelRect.width),
+      active ? styles.cancelButtonActive : styles.cancelButton,
     );
   }
 
@@ -423,7 +497,7 @@ export class Form implements TuiWidget {
   }
 
   private getFocusCount(): number {
-    return this.linkLayouts.length + this.fieldLayouts.length + 1;
+    return this.linkLayouts.length + this.fieldLayouts.length + 1 + (this.hasCancelButton() ? 1 : 0);
   }
 
   private isLinkFocused(index: number): boolean {
@@ -435,7 +509,11 @@ export class Form implements TuiWidget {
   }
 
   private isSubmitFocused(): boolean {
-    return this.focusIndex === this.linkLayouts.length + this.fieldLayouts.length;
+    return this.focusIndex === this.getSubmitFocusIndex();
+  }
+
+  private isCancelFocused(): boolean {
+    return this.hasCancelButton() && this.focusIndex === this.getCancelFocusIndex();
   }
 
   private getFocusedFieldLayout(): FieldLayout | null {
@@ -443,9 +521,11 @@ export class Form implements TuiWidget {
   }
 
   private getPreferredHeight(width: number): number {
+    const chromeHeight = this.options.compact ? 4 : 6;
+    const linkGap = this.options.compact ? 1 : 2;
     return (
-      6 +
-      (this.options.links?.length ? this.getLinkRows(width) + 2 : 0) +
+      chromeHeight +
+      (this.options.links?.length ? this.getLinkRows(width) + linkGap : 0) +
       this.options.fields.reduce(
         (height, field) => height + this.getFieldRows(field) + 3,
         0,
@@ -482,8 +562,32 @@ export class Form implements TuiWidget {
     return this.options.submitLabel;
   }
 
+  private getCancelLabel(): string {
+    return this.options.cancelLabel ?? "[Cancel]";
+  }
+
+  private getButtonWidth(label: string): number {
+    return Math.max(label.length, 10);
+  }
+
+  private hasCancelButton(): boolean {
+    return Boolean(this.options.onCancel);
+  }
+
+  private getCancelFocusIndex(): number {
+    return this.linkLayouts.length + this.fieldLayouts.length;
+  }
+
+  private getSubmitFocusIndex(): number {
+    return this.getCancelFocusIndex() + (this.hasCancelButton() ? 1 : 0);
+  }
+
   private isInsideSubmit(x: number, y: number): boolean {
     return this.isInsideRect(x, y, this.submitRect);
+  }
+
+  private isInsideCancel(x: number, y: number): boolean {
+    return this.hasCancelButton() && this.isInsideRect(x, y, this.cancelRect);
   }
 
   private getLinkIndexAt(x: number, y: number): number {

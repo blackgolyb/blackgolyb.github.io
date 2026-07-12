@@ -7,7 +7,12 @@ import type {
   ProcessMouseResponse,
 } from "../process/IProcess";
 import type { Stream } from "../utils/stream";
+import { getAsciiArtDimensions } from "../utils/asciiArt";
 import { typeText } from "../utils/textAnimations";
+
+const INTRO_TEXT = "Hello World";
+const COMPACT_INTRO_TEXT = "Hi";
+const INTRO_PADDING = 4;
 
 export class InitProcess extends BaseProcess {
   static name = "init";
@@ -32,7 +37,7 @@ export class InitProcess extends BaseProcess {
     this.activeProcess = matrix;
     await matrix.start({
       ...context,
-      args: ["-t", "Hello World", "-d", `${config.introTime}`],
+      args: ["-t", this.getIntroText(context), "-d", `${config.introTime}`],
     });
     this.activeProcess = boot;
     await boot?.start(context);
@@ -46,5 +51,26 @@ export class InitProcess extends BaseProcess {
 
   onMouseEvent(event: ProcessMouseEvent): ProcessMouseResponse | void {
     return this.activeProcess?.onMouseEvent?.(event);
+  }
+
+  private getIntroText(context: ProcessContext): string {
+    const { cols, rows } = context.stdlib.getWindowSize();
+    const intro = getAsciiArtDimensions(INTRO_TEXT);
+    if (
+      cols >= intro.width + INTRO_PADDING &&
+      rows >= intro.height + INTRO_PADDING
+    ) {
+      return INTRO_TEXT;
+    }
+
+    const compactIntro = getAsciiArtDimensions(COMPACT_INTRO_TEXT);
+    if (
+      cols >= compactIntro.width + INTRO_PADDING &&
+      rows >= compactIntro.height + INTRO_PADDING
+    ) {
+      return COMPACT_INTRO_TEXT;
+    }
+
+    return "";
   }
 }

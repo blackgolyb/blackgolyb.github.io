@@ -62,6 +62,30 @@ describe("Form", () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
+  it("cancels when the cancel button is clicked", () => {
+    const onCancel = vi.fn();
+    const form = new Form({
+      title: "Contact uplink",
+      help: "Help text",
+      submitLabel: "[ Submit ]",
+      cancelLabel: "[ Abort ]",
+      fields: [{ id: "name", label: "Name", type: "input" }],
+      onCancel,
+    });
+    const runtime = new TuiRuntime(form, 80, 24);
+    const cells = runtime.render().buffer.getCells();
+    const row = cells.findIndex((line) =>
+      line.map((cell) => cell.char).join("").includes("[ Abort ]"),
+    );
+    const col = cells[row].map((cell) => cell.char).join("").indexOf("[ Abort ]");
+
+    runtime.dispatch({ type: "mouseMove", x: col, y: row });
+    runtime.dispatch({ type: "mouseDown", x: col, y: row });
+    runtime.dispatch({ type: "mouseUp", x: col, y: row });
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
   it("activates a link when it is clicked", () => {
     const onLink = vi.fn();
     const form = new Form({
