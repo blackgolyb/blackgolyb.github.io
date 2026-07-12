@@ -1,5 +1,3 @@
-import { BaseProcess } from "../process/BaseProcess";
-import type { ProcessContext } from "../process/IProcess";
 import dataService, {
   type ProfileContact,
   type ProfileData,
@@ -7,6 +5,7 @@ import dataService, {
   type ProfileExperience,
   type ProfileSkillGroup,
 } from "../services/DataService";
+import { TypeCommand } from "./TypeCommand";
 
 const RESET = "\x1b[0m";
 const BOLD = "\x1b[1m";
@@ -16,30 +15,37 @@ const YELLOW = "\x1b[33m";
 const CYAN = "\x1b[36m";
 const RED = "\x1b[31m";
 
-export class AboutCommand extends BaseProcess {
+export class AboutCommand extends TypeCommand {
   static name = "about";
+  private lines: string[] = [];
 
-  protected async run(context: ProcessContext): Promise<void> {
+  protected async renderText(): Promise<string> {
+    this.lines = [];
     try {
       const profile = await dataService.fetchData();
-      this.renderProfile(profile, context.stdlib.getWindowSize().cols);
+      this.renderProfile(
+        profile,
+        this.context?.stdlib.getWindowSize().cols ?? 80,
+      );
     } catch {
-      this.writeLine(`${RED}Unable to load profile data.${RESET}`);
-      this.writeLine(
+      this.addLine(`${RED}Unable to load profile data.${RESET}`);
+      this.addLine(
         `${DIM}Try again later, or run <cv> for the PDF version.${RESET}`,
       );
     }
+
+    return `${this.lines.join("\n")}\n`.replace(/\n/g, "\r\n");
   }
 
   private renderProfile(profile: ProfileData, cols: number): void {
     const contentWidth = Math.min(Math.max(cols - 4, 56), 96);
     const fullName = `${profile.firstName} ${profile.lastName}`;
 
-    this.writeLine(`${BOLD}${GREEN}${fullName}${RESET}`);
-    this.writeLine(
+    this.addLine(`${BOLD}${GREEN}${fullName}${RESET}`);
+    this.addLine(
       `${CYAN}${profile.position}${RESET} ${DIM}| ${profile.location.city}, ${profile.location.country}${RESET}`,
     );
-    this.writeLine("");
+    this.addLine("");
 
     this.section("Snapshot");
     this.writeWrapped(
@@ -50,13 +56,13 @@ export class AboutCommand extends BaseProcess {
       "I like systems that are boring in production, clear in logs, and pleasant enough that future-me does not file a bug report against past-me.",
       contentWidth,
     );
-    this.writeLine("");
+    this.addLine("");
 
     this.section("Core Stack");
     for (const group of profile.skills) {
       this.renderSkillGroup(group, contentWidth);
     }
-    this.writeLine("");
+    this.addLine("");
 
     this.section("Experience");
     for (const experience of profile.experience) {
@@ -67,12 +73,12 @@ export class AboutCommand extends BaseProcess {
     for (const education of profile.education) {
       this.renderEducation(education, contentWidth);
     }
-    this.writeLine("");
+    this.addLine("");
 
     this.section("Links");
     this.renderLinks(profile.contacts);
-    this.writeLine("");
-    this.writeLine(
+    this.addLine("");
+    this.addLine(
       `${DIM}Need the formal version? Run ${CYAN}<cv>${RESET}${DIM}.${RESET}`,
     );
   }
@@ -86,13 +92,13 @@ export class AboutCommand extends BaseProcess {
   }
 
   private renderExperience(experience: ProfileExperience, width: number): void {
-    this.writeLine(
+    this.addLine(
       `${BOLD}${experience.name}${RESET} ${DIM}${this.formatPeriod(
         experience.startDate,
         experience.endDate,
       )} | ${experience.city}${RESET}`,
     );
-    this.writeLine(`  ${CYAN}${experience.position}${RESET}`);
+    this.addLine(`  ${CYAN}${experience.position}${RESET}`);
 
     for (const description of this.getExperienceHighlights(experience)) {
       this.writeWrapped(description, width, "  - ");
@@ -103,7 +109,7 @@ export class AboutCommand extends BaseProcess {
       width,
       "    ",
     );
-    this.writeLine("");
+    this.addLine("");
   }
 
   private renderEducation(education: ProfileEducation, width: number): void {
@@ -126,7 +132,7 @@ export class AboutCommand extends BaseProcess {
     for (const contact of contacts) {
       if (contact.icon === "Phone") continue;
 
-      this.writeLine(`  ${CYAN}${contact.label}${RESET}  ${contact.link}`);
+      this.addLine(`  ${CYAN}${contact.label}${RESET}  ${contact.link}`);
     }
   }
 
@@ -147,13 +153,13 @@ export class AboutCommand extends BaseProcess {
   }
 
   private section(title: string): void {
-    this.writeLine(`${GREEN}${BOLD}${title}${RESET}`);
+    this.addLine(`${GREEN}${BOLD}${title}${RESET}`);
   }
 
   private writeWrapped(text: string, width: number, prefix: string = ""): void {
     const visibleText = this.stripAnsi(text);
     if (prefix.length + visibleText.length <= width) {
-      this.writeLine(`${prefix}${text}`);
+      this.addLine(`${prefix}${text}`);
       return;
     }
 
@@ -163,7 +169,7 @@ export class AboutCommand extends BaseProcess {
     for (const word of words) {
       const nextLine = line ? `${line} ${word}` : word;
       if (prefix.length + this.stripAnsi(nextLine).length > width && line) {
-        this.writeLine(`${prefix}${line}`);
+        this.addLine(`${prefix}${line}`);
         line = word;
       } else {
         line = nextLine;
@@ -171,7 +177,7 @@ export class AboutCommand extends BaseProcess {
     }
 
     if (line) {
-      this.writeLine(`${prefix}${line}`);
+      this.addLine(`${prefix}${line}`);
     }
   }
 
@@ -194,5 +200,9 @@ export class AboutCommand extends BaseProcess {
   private stripAnsi(text: string): string {
     // biome-ignore lint: ANSI escape sequence pattern
     return text.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "");
+  }
+
+  private addLine(line: string): void {
+    this.lines.push(line);
   }
 }
