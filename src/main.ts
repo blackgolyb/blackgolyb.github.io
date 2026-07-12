@@ -7,8 +7,6 @@ import { HelpCommand } from "./commands/HelpCommand";
 import { ClearCommand } from "./commands/ClearCommand";
 import { EchoCommand } from "./commands/EchoCommand";
 import { MatrixCommand } from "./commands/MatrixCommand";
-import { DemoCommand } from "./commands/DemoCommand";
-import { ColorTestCommand } from "./commands/ColorTestCommand";
 import { ExitCommand } from "./commands/ExitCommand";
 import { BootCommand } from "./commands/BootCommand";
 import { ShellProcess } from "./process";
@@ -29,8 +27,6 @@ const PROGRAMS = [
   ClearCommand,
   EchoCommand,
   MatrixCommand,
-  DemoCommand,
-  ColorTestCommand,
   ExitCommand,
   BootCommand,
 ];
