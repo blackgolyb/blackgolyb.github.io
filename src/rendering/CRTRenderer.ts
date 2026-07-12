@@ -16,14 +16,17 @@ export class CRTRenderer {
       throw new Error(`Container ${containerId} not found`);
     }
     this.container = container;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     // Initialize the CRT renderer with custom settings
     this.crtTerminal = new CRTTerminal({
       container,
       fontColor: "#66ff66",
       backgroundColor: "#000000",
+      fontScale: isMobile ? 0.6 : 1,
       screenCurvature: 0.15,
       screenRadius: 0.1,
+      frameSize: isMobile ? 0.05 : 0.2,
       frameShininess: 0.5,
       frameColor: "#fcead9",
       bloom: 0.15,
