@@ -8,14 +8,21 @@ export class TypeCommand extends BaseProcess {
   delayMs: number = 15;
   text: string = "";
   isSkipped: boolean = false;
+  private resolveSkip: (() => void) | null = null;
 
   protected async run(context: ProcessContext): Promise<void> {
     const stdout = context.io.stdout;
-    for (const char of await this.renderText()) {
-      stdout.write(char);
-      if (!this.isSkipped) {
-        await delay(this.delayMs);
+    const chars = Array.from(await this.renderText());
+
+    for (let index = 0; index < chars.length; index++) {
+      if (this.isSkipped) {
+        stdout.write(chars.slice(index).join(""));
+        return;
       }
+
+      const char = chars[index];
+      stdout.write(char);
+      await this.waitForNextChar();
     }
   }
 
@@ -29,9 +36,23 @@ export class TypeCommand extends BaseProcess {
   }
 
   onInput(data: string) {
-    console.log("Input received in TypeCommand:", JSON.stringify(data));
     if (data === " " || data === "\r") {
       this.isSkipped = true;
+      this.resolveSkip?.();
+      this.resolveSkip = null;
     }
+  }
+
+  private waitForNextChar(): Promise<void> {
+    if (this.isSkipped) return Promise.resolve();
+
+    return Promise.race([
+      delay(this.delayMs),
+      new Promise<void>((resolve) => {
+        this.resolveSkip = resolve;
+      }),
+    ]).finally(() => {
+      this.resolveSkip = null;
+    });
   }
 }
